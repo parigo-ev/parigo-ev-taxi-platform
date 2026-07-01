@@ -1,0 +1,5 @@
+node_modules/
+build/
+.dart_tool/
+.env
+parigo_ev_backend/serviceAccountKey.json

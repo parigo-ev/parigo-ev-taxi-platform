@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "727657249341",
+    "project_id": "parigo-ev-16",
+    "storage_bucket": "parigo-ev-16.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:727657249341:android:660d62edc2a4e4e21a0854",
+        "android_client_info": {
+          "package_name": "com.example.parigo_ev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCv8bQM8rf1Yam10C3ULj_ellJsa3Q4LDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

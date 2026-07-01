@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding - Fixed Price</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#221b00",
+                        "surface-dim": "#1a0935",
+                        "outline": "#a78b7c",
+                        "outline-variant": "#584235",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#f1dbff",
+                        "surface-container-highest": "#3d2c58",
+                        "inverse-on-surface": "#382854",
+                        "tertiary-fixed": "#ffe170",
+                        "surface-variant": "#3d2c58",
+                        "secondary-fixed-dim": "#deb7ff",
+                        "on-primary-container": "#5c2800",
+                        "surface-tint": "#ffb68b",
+                        "tertiary-container": "#bd9e00",
+                        "primary-container": "#ff7a00",
+                        "on-primary-fixed": "#321200",
+                        "secondary": "#deb7ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#41315d",
+                        "on-tertiary": "#3a3000",
+                        "inverse-primary": "#994700",
+                        "on-primary-fixed-variant": "#753400",
+                        "surface-container-high": "#32214d",
+                        "secondary-container": "#6b13af",
+                        "surface": "#1a0935",
+                        "on-secondary-container": "#d4a5ff",
+                        "primary": "#ffb68b",
+                        "surface-container": "#271642",
+                        "inverse-surface": "#ecdcff",
+                        "tertiary": "#e9c400",
+                        "background": "#1a0935",
+                        "primary-fixed-dim": "#ffb68b",
+                        "on-surface": "#ecdcff",
+                        "primary-fixed": "#ffdbc8",
+                        "on-background": "#ecdcff",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#2d0050",
+                        "on-tertiary-fixed-variant": "#544600",
+                        "on-primary": "#522300",
+                        "on-secondary-fixed-variant": "#680eac",
+                        "on-tertiary-container": "#423600",
+                        "on-secondary": "#4a007f",
+                        "tertiary-fixed-dim": "#e9c400",
+                        "on-surface-variant": "#e0c0af",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#23123d",
+                        "surface-container-lowest": "#150330"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "xl": "64px",
+                        "gutter": "20px",
+                        "sm": "12px",
+                        "lg": "40px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "margin": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Space Grotesk"],
+                        "body-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "label-sm": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "label-bold": ["Space Grotesk"],
+                        "display": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "label-bold": ["14px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-dim text-on-surface h-screen w-full flex flex-col relative overflow-hidden font-body-md">
+<!-- Infinite Space & Solar Flare Gradients (Level 1 Elevation) -->
+<div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+<div class="absolute top-[-15%] right-[-25%] w-[400px] h-[400px] bg-primary-container opacity-40 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[20%] left-[-20%] w-[500px] h-[500px] bg-secondary-container opacity-30 rounded-full blur-[140px]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 flex-1 flex flex-col justify-center items-center px-gutter py-xl">
+<!-- 3D Asset Container (Level 4 Elevation) -->
+<div class="w-full max-w-[320px] aspect-square mb-lg relative flex items-center justify-center">
+<img alt="3D Shield" class="w-full h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]" data-alt="A high-fidelity, high-gloss 3D cartoonish illustration of a chunky, protective shield featuring a bold glowing currency symbol in the center. The shield floats in a surreal, infinite space, catching vibrant, warm reflections from an unseen sunset-orange solar flare. The lighting highlights the smooth, tactile geometry of the shield, making it pop against a deep, multi-layered cosmic purple background. Soft, ambient shadows tinted with purple give it depth and presence, perfectly matching a Gen Z-focused electric mobility app's energetic, futuristic, and premium aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD16RkVTCwGAd3wpj2jOLN8a-Hvm17CLA6qt7D7VXgsnplvOy7BR9X19ncTLbIuRqkJ0vBc818uKIoiNbBYDJ-ZZJ7cNSBcaFLlRiBLryUHKHsGopMJUs0OaLHfARAWJsKWEs05LT0EYOjGafuIjzJTwg_xhaeKcSKllGFa-hhIm4_tvyrMfnsgg8-lski3KOuoe6XJGLh011CMR1KBwE3e8KzQSc071JDHTbedR2FErw9o1VZAY0W46EHjgwgLFei1sJOxdRosH11"/>
+</div>
+<!-- Glassmorphism Content Card (Level 2 Elevation) -->
+<div class="w-full max-w-sm bg-surface/20 backdrop-blur-[32px] border border-white/5 border-t-white/20 rounded-xl p-md flex flex-col items-center text-center shadow-[0_10px_40px_rgba(0,0,0,0.4)] relative overflow-hidden">
+<!-- Inner subtle glow top -->
+<div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">
+                Fixed Price. No Surge.
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                Same fare. Anytime. No Surprises.
+            </p>
+</div>
+</main>
+<!-- Bottom Actions & Indicators -->
+<footer class="relative z-10 px-margin pb-xl pt-md flex flex-col items-center gap-lg w-full max-w-md mx-auto">
+<!-- Progression Indicators -->
+<div class="flex gap-sm items-center">
+<div class="w-2 h-2 rounded-full bg-on-surface-variant/30"></div>
+<div class="w-8 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(255,122,0,0.6)]"></div>
+<div class="w-2 h-2 rounded-full bg-on-surface-variant/30"></div>
+</div>
+<!-- Primary Button (Level 3 Elevation) -->
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-label-bold text-label-bold py-md px-lg rounded-full flex justify-center items-center gap-xs shadow-[0_0_24px_rgba(255,122,0,0.4)] hover:shadow-[0_0_32px_rgba(255,122,0,0.6)] transition-all">
+            Continue
+            <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward" style="font-variation-settings: 'FILL' 1;">arrow_forward</span>
+</button>
+</footer>
+</body></html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Parigo EV - Fare Estimate</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffe170",
+                        "surface-variant": "#3d2c58",
+                        "secondary": "#deb7ff",
+                        "on-secondary": "#4a007f",
+                        "on-primary": "#522300",
+                        "surface-container-lowest": "#150330",
+                        "inverse-on-surface": "#382854",
+                        "tertiary": "#e9c400",
+                        "error": "#ffb4ab",
+                        "on-background": "#ecdcff",
+                        "surface-container-highest": "#3d2c58",
+                        "surface": "#1a0935",
+                        "surface-container": "#271642",
+                        "secondary-fixed-dim": "#deb7ff",
+                        "on-surface-variant": "#e0c0af",
+                        "primary": "#ffb68b",
+                        "on-error": "#690005",
+                        "surface-container-low": "#23123d",
+                        "tertiary-fixed-dim": "#e9c400",
+                        "on-tertiary-container": "#423600",
+                        "on-secondary-container": "#d4a5ff",
+                        "on-primary-container": "#5c2800",
+                        "on-tertiary": "#3a3000",
+                        "tertiary-container": "#bd9e00",
+                        "secondary-container": "#6b13af",
+                        "primary-container": "#ff7a00",
+                        "primary-fixed": "#ffdbc8",
+                        "on-tertiary-fixed": "#221b00",
+                        "on-surface": "#ecdcff",
+                        "inverse-primary": "#994700",
+                        "surface-dim": "#1a0935",
+                        "surface-container-high": "#32214d",
+                        "on-primary-fixed-variant": "#753400",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#321200",
+                        "inverse-surface": "#ecdcff",
+                        "surface-tint": "#ffb68b",
+                        "primary-fixed-dim": "#ffb68b",
+                        "on-secondary-fixed-variant": "#680eac",
+                        "on-secondary-fixed": "#2d0050",
+                        "secondary-fixed": "#f1dbff",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#a78b7c",
+                        "background": "#1a0935",
+                        "outline-variant": "#584235",
+                        "on-tertiary-fixed-variant": "#544600",
+                        "surface-bright": "#41315d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin": "24px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "gutter": "20px",
+                        "xl": "64px",
+                        "base": "8px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-lg": ["Space Grotesk"],
+                        "label-bold": ["Space Grotesk"],
+                        "display": ["Space Grotesk"],
+                        "body-md": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.0", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-bold": ["14px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-gradient-radial {
+            background-image: radial-gradient(circle, var(--tw-gradient-stops));
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen relative overflow-x-hidden flex flex-col">
+<!-- Global Background Elements -->
+<div class="fixed inset-0 z-[-1] pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-gradient-radial from-secondary-container/20 to-transparent blur-[100px]"></div>
+<div class="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-gradient-radial from-primary-container/15 to-transparent blur-[120px]"></div>
+</div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-b border-white/10 shadow-[0_-1px_20px_rgba(255,122,0,0.1)] bg-surface-container-highest/40 backdrop-blur-xl">
+<div class="flex justify-between items-center px-margin py-sm w-full">
+<button class="text-on-surface hover:bg-white/10 transition-colors p-sm rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Space_Grotesk'] font-bold tracking-tight text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
+                PARIGO
+            </h1>
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden border border-white/10">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A close up portrait of a futuristic persona bathed in neon orange and deep purple light, matching the Solar Flare glassmorphism theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD4zqBCYCC4KU9082UbTIAWTeZGXwcyYl4uwzpjmsytL7aJSmbFq8IxjPW6fhoBblU0SzrIQr3csmIe3iPRoAYG5FEzWOgSWIuZqRNQprPTQk4qE7qorJ-FuGW2FSdWTKguVgFpUlcMnBgrcoFTx3d4aZVqVuiIcY3VycE9IwEdeg-1rLd7fgijCxuTbsuc1e48efA-NJHj6wB6WHuMZ5nFU0P2T7_Q2dNpBU5NqMkxgLTkML59dMcEXv2XesSiFkySB_y75yi3eBy"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas (Suppressed Bottom Nav for Transactional Flow) -->
+<main class="flex-1 mt-20 px-margin pb-[120px] max-w-3xl mx-auto w-full relative z-10 flex flex-col gap-lg">
+<!-- Header -->
+<div class="pt-md">
+<h2 class="font-display text-display text-on-surface">Fare Estimate</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-xs">Review your route and pricing details.</p>
+</div>
+<!-- Map Segment -->
+<div class="w-full h-[250px] md:h-[350px] rounded-lg overflow-hidden border border-white/10 relative shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+<img alt="Route Map" class="w-full h-full object-cover opacity-80" data-alt="A stylized, high-fidelity 3D map view of a futuristic city route at night. The roads are glowing neon paths of orange against deep purple urban structures, reflecting the premium electric mobility aesthetic." data-location="Cyberpunk Cityscape" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1EZBcSLj94cE_Qwh96_eaXcxiB5vEOwxkubM5EOItg6ukQHMNiGo-Ckkiys9ODvr_6tlPrwSdDV0sUFoh9NUWG-vGAY4UaQaIB1wdWcHy7hJFC-Pu4F09box-Mv-PTJO-HyG5A9orzEoTlLbdkDvaV8g_V2u2hN_ZCEwDWO2Kf0iG1eLtOr1GV6n0J6zt_-tgPlZhy1qfrzLlg7zrmCUyRHPPYVng3qlBK1_3xjrP5Ru-fFGXHjxnG4bg-lYZ3SQDZDzAZR4HJ4d0"/>
+<!-- Map Overlay Elements -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent flex flex-col justify-end p-md">
+<div class="flex items-center gap-sm bg-surface-container/60 backdrop-blur-md rounded-full px-md py-sm w-fit border border-white/10">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">electric_car</span>
+<span class="font-label-bold text-label-bold text-on-surface">ETA: 12 mins</span>
+</div>
+</div>
+</div>
+<!-- Route Details Card -->
+<div class="bg-surface-container-low/60 backdrop-blur-[24px] border border-white/10 rounded-lg p-md relative overflow-hidden shadow-lg">
+<div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+<div class="flex flex-col gap-md">
+<div class="flex items-start gap-md">
+<div class="flex flex-col items-center mt-1">
+<div class="w-3 h-3 rounded-full border-2 border-primary bg-surface"></div>
+<div class="w-0.5 h-10 bg-surface-variant my-1"></div>
+<div class="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_rgba(255,122,0,0.8)]"></div>
+</div>
+<div class="flex flex-col gap-sm flex-1">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Pickup</p>
+<p class="font-body-md text-body-md text-on-surface">Neon Genesis Hub, Sector 4</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Destination</p>
+<p class="font-body-md text-body-md text-on-surface">Astro Terminal, Zenith District</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Fare Breakdown Card -->
+<div class="bg-surface-container/40 backdrop-blur-[40px] border border-white/10 rounded-xl p-lg relative shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+<div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-md">Fare Breakdown</h3>
+<div class="flex flex-col gap-sm">
+<!-- Tier 1 -->
+<div class="flex justify-between items-center py-sm border-b border-white/5">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">route</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface">Distance Fare (25 km)</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Tier 2: 13.99rs/km</p>
+</div>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">349.75rs</span>
+</div>
+<!-- Taxes -->
+<div class="flex justify-between items-center py-sm border-b border-white/5">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">receipt_long</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">Taxes &amp; Fees</p>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant">42.00rs</span>
+</div>
+<!-- Total -->
+<div class="flex justify-between items-end pt-md mt-sm">
+<div>
+<p class="font-label-bold text-label-bold text-primary mb-1 uppercase tracking-widest">Total Estimated Fare</p>
+</div>
+<span class="font-display text-display text-primary drop-shadow-[0_0_10px_rgba(255,122,0,0.4)]">391.75rs</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-container-highest/80 backdrop-blur-2xl border-t border-white/10 p-md z-50 flex items-center justify-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+<button class="w-full max-w-md bg-gradient-to-r from-primary-container to-[#ff9500] text-white font-headline-md text-headline-md py-sm px-lg rounded-full shadow-[0_0_20px_rgba(255,122,0,0.6)] hover:scale-[1.02] active:scale-95 transition-all duration-200 relative overflow-hidden group">
+<span class="relative z-10 flex items-center justify-center gap-sm">
+                Confirm Booking
+                <span class="material-symbols-outlined">bolt</span>
+</span>
+<div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+</div>
+</body></html>

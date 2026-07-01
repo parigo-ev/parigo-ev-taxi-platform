@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding - No More Cancellations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed": "#221b00",
+                        "surface-dim": "#1a0935",
+                        "outline": "#a78b7c",
+                        "outline-variant": "#584235",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#f1dbff",
+                        "surface-container-highest": "#3d2c58",
+                        "inverse-on-surface": "#382854",
+                        "tertiary-fixed": "#ffe170",
+                        "surface-variant": "#3d2c58",
+                        "secondary-fixed-dim": "#deb7ff",
+                        "on-primary-container": "#5c2800",
+                        "surface-tint": "#ffb68b",
+                        "tertiary-container": "#bd9e00",
+                        "primary-container": "#ff7a00",
+                        "on-primary-fixed": "#321200",
+                        "secondary": "#deb7ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#41315d",
+                        "on-tertiary": "#3a3000",
+                        "inverse-primary": "#994700",
+                        "on-primary-fixed-variant": "#753400",
+                        "surface-container-high": "#32214d",
+                        "secondary-container": "#6b13af",
+                        "surface": "#1a0935",
+                        "on-secondary-container": "#d4a5ff",
+                        "primary": "#ffb68b",
+                        "surface-container": "#271642",
+                        "inverse-surface": "#ecdcff",
+                        "tertiary": "#e9c400",
+                        "background": "#1a0935",
+                        "primary-fixed-dim": "#ffb68b",
+                        "on-surface": "#ecdcff",
+                        "primary-fixed": "#ffdbc8",
+                        "on-background": "#ecdcff",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#2d0050",
+                        "on-tertiary-fixed-variant": "#544600",
+                        "on-primary": "#522300",
+                        "on-secondary-fixed-variant": "#680eac",
+                        "on-tertiary-container": "#423600",
+                        "on-secondary": "#4a007f",
+                        "tertiary-fixed-dim": "#e9c400",
+                        "on-surface-variant": "#e0c0af",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#23123d",
+                        "surface-container-lowest": "#150330"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "base": "8px",
+                        "xl": "64px",
+                        "gutter": "20px",
+                        "sm": "12px",
+                        "lg": "40px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "margin": "24px"
+                    },
+                    fontFamily: {
+                        "body-lg": ["Space Grotesk"],
+                        "body-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "label-sm": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "label-bold": ["Space Grotesk"],
+                        "display": ["Space Grotesk"]
+                    },
+                    fontSize: {
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "label-bold": ["14px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Custom Utility for Drop Shadow targeting named colors since arbitrary shadow values are restricted */
+        .glow-primary {
+            box-shadow: 0 0 20px 0 rgba(255, 122, 0, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-[884px] flex flex-col relative overflow-hidden antialiased">
+<!-- Level 1: Infinite Space Gradients (Solar Flare Theme) -->
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-container/20 rounded-full blur-[120px] pointer-events-none -translate-y-1/4 translate-x-1/4"></div>
+<div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary-container/30 rounded-full blur-[100px] pointer-events-none translate-y-1/4 -translate-x-1/4"></div>
+<!-- Main Onboarding Canvas -->
+<main class="flex-1 flex flex-col items-center justify-between z-10 px-margin pt-xl pb-margin relative max-w-md mx-auto w-full">
+<!-- Top Section: 3D Asset Floating Area -->
+<div class="flex-1 w-full flex items-center justify-center relative mt-lg">
+<!-- Ambient shadow cast by 3D object onto the invisible floor -->
+<div class="absolute bottom-4 w-48 h-8 bg-surface-container-highest/80 rounded-full blur-[16px] scale-y-50"></div>
+<img alt="3D Electric Car Illustration" class="relative z-10 w-full max-w-[280px] object-contain drop-shadow-2xl" data-alt="A high-gloss, premium 3D cartoonish illustration of a futuristic electric car. The vehicle is styled with chunky, expressive proportions and sits against a transparent background. The lighting simulates a dramatic solar flare, casting warm sunset orange highlights and deep celestial purple ambient shadows onto the sleek, rounded surfaces of the car. The overall aesthetic perfectly matches a high-energy, Gen Z-focused ride-sharing app with a surreal, glassmorphism-inspired visual identity. Render in ultra-high fidelity with tactile, toy-like materials." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD91x-HHDbAVBs5JXn39G2GxpUMM2_3RvlIOS5VzUGs8OzL0IgdOo8P0wZM-2zeppUZm8BSbRZoiBFsY3bp5ZInyoqdxnX3Zrc8MGMQ4FBvt74sEkLhPrVUWJoLnKgWKJ6vNAli6brfFCH0DsN2AP0M7pMvdB7TGG9ubSZTeUpqx9k44cND2YzWnp2YMe_KaH7x2l0kLnSHWZYR_I-aK0wUt0u9Mx-N13A8US3pT0Faqv17l3i3vUtt_I-qgJa-D1If8v0a1J-js4Pz"/>
+</div>
+<!-- Bottom Section: Level 2 Glass Card (Content & Controls) -->
+<div class="w-full bg-surface-variant/20 backdrop-blur-[24px] border border-inverse-surface/10 rounded-xl p-md flex flex-col gap-md relative overflow-hidden mt-8 shadow-2xl">
+<!-- Simulated 3D top-light highlight on the glass edge -->
+<div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+<!-- Typography Content -->
+<div class="flex flex-col gap-sm text-center">
+<h1 class="font-display text-display text-on-surface tracking-tight">No More Cancellations</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant px-sm">Reliable rides, every time you book.</p>
+</div>
+<!-- Level 3: Interactive Elements (Progress & Buttons) -->
+<div class="flex flex-col gap-lg mt-sm">
+<!-- Progress Indicators -->
+<div class="flex justify-center items-center gap-base">
+<!-- Active Chip -->
+<div class="w-10 h-2.5 rounded-full bg-primary-container glow-primary relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"></div>
+</div>
+<!-- Inactive Chips -->
+<div class="w-2.5 h-2.5 rounded-full bg-surface-container-high border border-outline/20"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface-container-high border border-outline/20"></div>
+</div>
+<!-- Action Stack -->
+<div class="flex flex-col gap-base">
+<!-- Primary Button (Inner & Outer Glow conceptually applied via gradients and shadows) -->
+<button class="w-full py-4 px-md rounded-full bg-gradient-to-r from-primary-container to-[#ff9500] text-on-primary-container font-label-bold text-label-bold flex items-center justify-center gap-sm glow-primary border-none outline-none" type="button">
+<span>Get Started</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<!-- Secondary Button (Frosted Glass) -->
+<button class="w-full py-4 px-md rounded-full bg-surface-container/30 backdrop-blur-md border border-primary-container/40 text-on-surface font-label-bold text-label-bold" type="button">
+                        Skip
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

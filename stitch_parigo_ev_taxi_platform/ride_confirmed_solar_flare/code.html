@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Parigo EV - Ride Confirmed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#ffe170",
+                      "surface-variant": "#3d2c58",
+                      "secondary": "#deb7ff",
+                      "on-secondary": "#4a007f",
+                      "on-primary": "#522300",
+                      "surface-container-lowest": "#150330",
+                      "inverse-on-surface": "#382854",
+                      "tertiary": "#e9c400",
+                      "error": "#ffb4ab",
+                      "on-background": "#ecdcff",
+                      "surface-container-highest": "#3d2c58",
+                      "surface": "#1a0935",
+                      "surface-container": "#271642",
+                      "secondary-fixed-dim": "#deb7ff",
+                      "on-surface-variant": "#e0c0af",
+                      "primary": "#ffb68b",
+                      "on-error": "#690005",
+                      "surface-container-low": "#23123d",
+                      "tertiary-fixed-dim": "#e9c400",
+                      "on-tertiary-container": "#423600",
+                      "on-secondary-container": "#d4a5ff",
+                      "on-primary-container": "#5c2800",
+                      "on-tertiary": "#3a3000",
+                      "tertiary-container": "#bd9e00",
+                      "secondary-container": "#6b13af",
+                      "primary-container": "#ff7a00",
+                      "primary-fixed": "#ffdbc8",
+                      "on-tertiary-fixed": "#221b00",
+                      "on-surface": "#ecdcff",
+                      "inverse-primary": "#994700",
+                      "surface-dim": "#1a0935",
+                      "surface-container-high": "#32214d",
+                      "on-primary-fixed-variant": "#753400",
+                      "error-container": "#93000a",
+                      "on-primary-fixed": "#321200",
+                      "inverse-surface": "#ecdcff",
+                      "surface-tint": "#ffb68b",
+                      "primary-fixed-dim": "#ffb68b",
+                      "on-secondary-fixed-variant": "#680eac",
+                      "on-secondary-fixed": "#2d0050",
+                      "secondary-fixed": "#f1dbff",
+                      "on-error-container": "#ffdad6",
+                      "outline": "#a78b7c",
+                      "background": "#1a0935",
+                      "outline-variant": "#584235",
+                      "on-tertiary-fixed-variant": "#544600",
+                      "surface-bright": "#41315d"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "margin": "24px",
+                      "sm": "12px",
+                      "md": "24px",
+                      "gutter": "20px",
+                      "xl": "64px",
+                      "base": "8px",
+                      "lg": "40px"
+              },
+              "fontFamily": {
+                      "label-sm": [
+                              "Space Grotesk"
+                      ],
+                      "headline-md": [
+                              "Space Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Space Grotesk"
+                      ],
+                      "body-lg": [
+                              "Space Grotesk"
+                      ],
+                      "label-bold": [
+                              "Space Grotesk"
+                      ],
+                      "display": [
+                              "Space Grotesk"
+                      ],
+                      "body-md": [
+                              "Space Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-bold": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(255, 122, 0, 0.8), 0 0 20px rgba(255, 122, 0, 0.5);
+        }
+        .btn-glow {
+            box-shadow: 0 0 20px rgba(255, 122, 0, 0.4);
+        }
+        .bg-radial-gradient {
+            background: radial-gradient(circle at top right, rgba(255, 122, 0, 0.15), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(107, 19, 175, 0.2), transparent 50%),
+                        #1a0935;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-radial-gradient min-h-screen text-on-surface font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-b border-white/10 bg-purple-950/40 backdrop-blur-xl shadow-[0_-1px_20px_rgba(255,122,0,0.1)]">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<button class="text-purple-200/60 hover:bg-white/10 transition-colors p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="font-['Space_Grotesk'] font-bold tracking-tight text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">PARIGO</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A futuristic portrait avatar of a user in a neon-lit cyberpunk environment. Soft purple ambient lighting illuminates the face with bright orange reflections, fitting the Parigo EV style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMOiEcOF-yFzGl3GaI1T7mLEO0G4CNIpqbZYJY70AOHqCfqFAWHV9quiRaMCN9hEq8AXCZtLx7tyHdiR2mZnQHrPGF0m3UcmG3BmffsxDEPvUSQ0ILdu5T7L1kTDPI5ycK4gLS3Nx7q2ZGGEgnj0GWhy5-aIjkH8sZ81WgpW6NeyaUDOYvHrbKbcteBm9H19sgT7U-c-XoaUujcT4XfHqedO3SkIbs4UsPdPhXRmKABnlfKJn_lCsSNZiW6Z1ww4r0IqB8n7cb4BoT"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-[100px] pb-[120px] px-margin max-w-lg mx-auto flex flex-col gap-lg relative z-10">
+<!-- Status Header -->
+<div class="text-center mt-md">
+<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-container to-secondary-container mb-sm shadow-[0_0_30px_rgba(255,122,0,0.4)]">
+<span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="font-display text-display text-on-surface mt-sm neon-glow">Confirmed</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-xs">Your EV is arriving shortly.</p>
+</div>
+<!-- OTP Display Card -->
+<div class="glass-panel rounded-xl p-md flex flex-col items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50"></div>
+<p class="font-label-bold text-label-bold text-primary tracking-widest uppercase mb-sm z-10">Your Ride OTP</p>
+<div class="flex gap-sm z-10">
+<div class="w-16 h-20 rounded-lg bg-surface-container-highest border border-primary/30 flex items-center justify-center shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+<span class="font-display text-[40px] font-bold text-primary drop-shadow-[0_0_8px_rgba(255,122,0,0.8)]">4</span>
+</div>
+<div class="w-16 h-20 rounded-lg bg-surface-container-highest border border-primary/30 flex items-center justify-center shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+<span class="font-display text-[40px] font-bold text-primary drop-shadow-[0_0_8px_rgba(255,122,0,0.8)]">8</span>
+</div>
+<div class="w-16 h-20 rounded-lg bg-surface-container-highest border border-primary/30 flex items-center justify-center shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+<span class="font-display text-[40px] font-bold text-primary drop-shadow-[0_0_8px_rgba(255,122,0,0.8)]">2</span>
+</div>
+<div class="w-16 h-20 rounded-lg bg-surface-container-highest border border-primary/30 flex items-center justify-center shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+<span class="font-display text-[40px] font-bold text-primary drop-shadow-[0_0_8px_rgba(255,122,0,0.8)]">9</span>
+</div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-sm text-center z-10">Share this with your driver to start the ride</p>
+</div>
+<!-- Driver & Vehicle Details -->
+<div class="glass-panel rounded-lg p-md relative overflow-hidden">
+<!-- Background 3D asset placeholder -->
+<div class="absolute -right-10 -bottom-10 opacity-30 pointer-events-none">
+<img alt="3D EV Model" class="w-48 h-48 object-cover rounded-full mix-blend-screen filter brightness-150 contrast-125" data-alt="A cartoonish, high-gloss 3D render of an electric vehicle in deep space. The EV is lit by a bright orange solar flare reflecting off its curved metallic purple surface, matching the Gen-Z surrealism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjXTIoiNn4-3wIRfpCOIcTL6FpI5NdR-SnWYfB6fz7S__h6azvwpMWw6rdpVEQp9RWRqVeFa2rEG93i3lZD81T2UKpV82TIJ9sjjG8B4UD7tlmnOzEOaM5ZHiqoJ38wsmXGQvsV10VjqChB7GD3ZrmEEQTZpgUOz5dUW35yY0d_mRHkAXLfk8t-3ELmZB-8iES-iahvcuk_VcrBiqAO_k4InTDKiBQ0ToR5b_5Q-y5EN9uSTMYoHiQvyISnLTA80A_jUdkJlP3oexT"/>
+</div>
+<div class="flex items-center gap-md relative z-10 border-b border-white/10 pb-md mb-md">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary-container relative">
+<img alt="Driver Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a driver wearing futuristic smart glasses. The background is a dark purple gradient with orange highlights, creating a premium high-fidelity look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5HftD7P7dRa6V3xcACFYyd-To6ijsNUA8q3dnGuaZFSGRILQq8FLrYRbiXGQZRQCF7ZcojhcFSs1F-2Gl3EGFA3wQ-0c7dGF0yGpmJ3GmsdqII2_FtSB5eDkSRe2qLNlQJonDoY-yrDcE5Swfnp-19rZjvlL5y_b74VaQTvwqKySewSrRwP-jTSiu8Y4mYA8ACt5izEh4K6Vi5Dh32AY5iYc8vRHba7k0VGbkWxURe4SKuT5eEEZuA6XUMRvViHQFKVnwt1_ztxyc"/>
+<div class="absolute bottom-0 right-0 bg-secondary-container rounded-full w-5 h-5 flex items-center justify-center border border-surface">
+<span class="material-symbols-outlined text-[10px] text-white" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-md text-headline-md text-on-surface">Alex Rivera</h3>
+<div class="flex items-center gap-xs mt-1">
+<span class="font-label-bold text-label-bold text-primary">4.9</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• 1,204 rides</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-surface-container-highest border border-white/10 flex items-center justify-center text-primary hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">call</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-surface-container-highest border border-white/10 flex items-center justify-center text-primary hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between relative z-10">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Vehicle</p>
+<h4 class="font-body-lg text-body-lg text-on-surface font-semibold">Parigo Pulse EV</h4>
+<p class="font-headline-md text-headline-md text-secondary mt-1 tracking-widest bg-surface-container-lowest px-3 py-1 rounded border border-white/5 inline-block">MH 01 AB 1234</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Payment</p>
+<div class="flex items-center gap-2 justify-end">
+<span class="material-symbols-outlined text-primary text-sm">qr_code_scanner</span>
+<span class="font-body-lg text-body-lg text-on-surface font-semibold">UPI</span>
+</div>
+<p class="font-label-sm text-label-sm text-secondary mt-1">₹450.00</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Tracking FAB/Button Area (Transactional screen, replacing standard nav) -->
+<div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-surface via-surface/90 to-transparent z-40">
+<button class="w-full py-4 rounded-full bg-gradient-to-r from-primary-container to-orange-600 text-white font-headline-md text-headline-md shadow-[0_0_20px_rgba(255,122,0,0.5)] flex items-center justify-center gap-sm hover:scale-[1.02] transition-transform btn-glow">
+<span class="material-symbols-outlined">my_location</span>
+            Track Ride
+        </button>
+</div>
+</body></html>

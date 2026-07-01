@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Parigo EV - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#221b00",
+                        "surface-dim": "#1a0935",
+                        "outline": "#a78b7c",
+                        "outline-variant": "#584235",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#f1dbff",
+                        "surface-container-highest": "#3d2c58",
+                        "inverse-on-surface": "#382854",
+                        "tertiary-fixed": "#ffe170",
+                        "surface-variant": "#3d2c58",
+                        "secondary-fixed-dim": "#deb7ff",
+                        "on-primary-container": "#5c2800",
+                        "surface-tint": "#ffb68b",
+                        "tertiary-container": "#bd9e00",
+                        "primary-container": "#ff7a00",
+                        "on-primary-fixed": "#321200",
+                        "secondary": "#deb7ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#41315d",
+                        "on-tertiary": "#3a3000",
+                        "inverse-primary": "#994700",
+                        "on-primary-fixed-variant": "#753400",
+                        "surface-container-high": "#32214d",
+                        "secondary-container": "#6b13af",
+                        "surface": "#1a0935",
+                        "on-secondary-container": "#d4a5ff",
+                        "primary": "#ffb68b",
+                        "surface-container": "#271642",
+                        "inverse-surface": "#ecdcff",
+                        "tertiary": "#e9c400",
+                        "background": "#1a0935",
+                        "primary-fixed-dim": "#ffb68b",
+                        "on-surface": "#ecdcff",
+                        "primary-fixed": "#ffdbc8",
+                        "on-background": "#ecdcff",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#2d0050",
+                        "on-tertiary-fixed-variant": "#544600",
+                        "on-primary": "#522300",
+                        "on-secondary-fixed-variant": "#680eac",
+                        "on-tertiary-container": "#423600",
+                        "on-secondary": "#4a007f",
+                        "tertiary-fixed-dim": "#e9c400",
+                        "on-surface-variant": "#e0c0af",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#23123d",
+                        "surface-container-lowest": "#150330"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "xl": "64px",
+                        "gutter": "20px",
+                        "sm": "12px",
+                        "lg": "40px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "margin": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Space Grotesk"],
+                        "body-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "label-sm": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "label-bold": ["Space Grotesk"],
+                        "display": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(39, 22, 66, 0.4); /* surface-container with opacity */
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen overflow-x-hidden relative font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Solar Flare Background Effects -->
+<div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+<div class="absolute top-[-10%] left-[-10%] w-[60%] h-[50%] bg-secondary-container/20 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[-20%] right-[-10%] w-[70%] h-[60%] bg-primary-container/10 rounded-full blur-[120px]"></div>
+<div class="absolute top-[40%] right-[10%] w-[30%] h-[30%] bg-tertiary-container/10 rounded-full blur-[80px]"></div>
+</div>
+<!-- TopAppBar -->
+<header class="bg-surface-dim/40 backdrop-blur-xl fixed top-0 w-full z-50 shadow-[0_-1px_20px_rgba(255,122,0,0.1)] flex justify-between items-center px-6 py-4">
+<button class="text-primary hover:bg-white/10 transition-colors p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">menu</span>
+</button>
+<div class="font-display text-display text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-container">
+            PARIGO
+        </div>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border-2 border-primary/30 shadow-[0_0_10px_rgba(255,122,0,0.3)]">
+<img alt="Admin profile avatar" class="w-full h-full object-cover" data-alt="A highly detailed, high-gloss 3D cartoonish avatar of an administrator inside a glowing circle. The portrait features vibrant orange and deep purple neon lighting, fitting a futuristic Gen Z aesthetic. The character wears sleek, modern tech-wear against a deep space dark background, rendered with a pristine glassmorphism effect." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTar_4y4OScu2VIaA9Zn8xLrEeh9JFZ9ifuFl1xOR9Jv_Y4hI8U5UzzxvhlRSGNyJT1tjNR1DnVrwDkElhwLtX3EGWjP3GxEwahgYbmFRJeCirfsxwzUBiSHPaAlXBvEkhFg0ok6OtTaONeaqw_1MSAOCCZsJBJdco5PwqKOEwjKiZ7JVQnp_16s85OdGNuaJiK-i3D0QR6tHMps7vymfXPGehriVcHFcRTc_Mg5u9fAFl_H0r6kAyo3tuU6r3frJl9w5M-1Q5su5"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-[90px] pb-[120px] px-6 flex flex-col gap-lg relative z-10">
+<!-- Dashboard Header -->
+<div class="flex flex-col gap-xs">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">System Pulse</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Live network analytics overview.</p>
+</div>
+<!-- Analytics Bento Grid -->
+<div class="grid grid-cols-2 gap-sm">
+<!-- Total Rides (Hero Stat) -->
+<div class="col-span-2 glass-panel rounded-xl p-md flex flex-col relative overflow-hidden group">
+<div class="absolute right-[-20%] top-[-20%] w-[50%] h-[150%] bg-primary-container/10 blur-[40px] transform rotate-12 group-hover:bg-primary-container/20 transition-all duration-500"></div>
+<div class="flex justify-between items-start z-10">
+<div class="flex flex-col gap-xs">
+<span class="font-label-bold text-label-bold text-secondary uppercase tracking-widest">Total Rides</span>
+<span class="font-display text-display text-transparent bg-clip-text bg-gradient-to-br from-white to-primary">12,458</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center border border-primary/20 shadow-[0_0_15px_rgba(255,122,0,0.2)]">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">route</span>
+</div>
+</div>
+<div class="mt-sm flex items-center gap-xs text-tertiary z-10">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span class="font-label-sm text-label-sm">+14% vs last week</span>
+</div>
+</div>
+<!-- Active Drivers -->
+<div class="glass-panel rounded-xl p-md flex flex-col justify-between aspect-square relative">
+<div class="flex justify-between items-center">
+<span class="font-label-bold text-label-bold text-on-surface-variant">Active Drivers</span>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,122,0,0.8)]"></div>
+</div>
+<div class="flex flex-col mt-auto">
+<span class="font-headline-lg text-headline-lg text-on-surface">342</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Online now</span>
+</div>
+</div>
+<!-- Revenue -->
+<div class="glass-panel rounded-xl p-md flex flex-col justify-between aspect-square relative">
+<div class="flex justify-between items-center">
+<span class="font-label-bold text-label-bold text-on-surface-variant">Revenue</span>
+<span class="material-symbols-outlined text-secondary">payments</span>
+</div>
+<div class="flex flex-col mt-auto">
+<span class="font-headline-lg text-headline-lg text-primary">$48.2k</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Today</span>
+</div>
+</div>
+</div>
+<!-- Unallocated Rides Section -->
+<section class="flex flex-col gap-md mt-sm">
+<div class="flex justify-between items-end">
+<div class="flex flex-col gap-xs">
+<h2 class="font-headline-md text-headline-md text-on-surface">Unallocated Rides</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Pending driver assignments.</p>
+</div>
+<div class="bg-error-container/20 border border-error-container/50 px-3 py-1 rounded-full flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-error uppercase tracking-wider">3 Pending</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Ride Card 1 -->
+<div class="glass-panel rounded-lg p-md border border-outline-variant/30 flex flex-col gap-md relative overflow-hidden group">
+<!-- Top Highlight -->
+<div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-secondary">electric_car</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-bold text-label-bold text-on-surface">REQ-8924</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Premium EV required</span>
+</div>
+</div>
+<span class="font-label-bold text-label-bold text-primary">5 mins ago</span>
+</div>
+<div class="flex flex-col gap-sm pl-2 border-l-2 border-surface-container-highest ml-[18px]">
+<div class="flex items-center gap-sm relative">
+<div class="absolute left-[-25px] w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="font-body-md text-body-md text-on-surface">Downtown Core</span>
+</div>
+<div class="flex items-center gap-sm relative">
+<div class="absolute left-[-25px] w-2 h-2 rounded-full border-2 border-primary"></div>
+<span class="font-body-md text-body-md text-on-surface-variant">International Airport</span>
+</div>
+</div>
+<button class="w-full mt-xs bg-gradient-to-r from-primary to-primary-container text-on-primary font-label-bold text-label-bold py-sm rounded-full shadow-[0_0_15px_rgba(255,122,0,0.3)] hover:shadow-[0_0_25px_rgba(255,122,0,0.5)] transition-all duration-300 flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+                        Assign Driver
+                    </button>
+</div>
+<!-- Ride Card 2 -->
+<div class="glass-panel rounded-lg p-md border border-outline-variant/30 flex flex-col gap-md relative overflow-hidden">
+<!-- Top Highlight -->
+<div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-secondary">local_taxi</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-bold text-label-bold text-on-surface">REQ-8925</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Standard EV</span>
+</div>
+</div>
+<span class="font-label-bold text-label-bold text-on-surface-variant">12 mins ago</span>
+</div>
+<div class="flex flex-col gap-sm pl-2 border-l-2 border-surface-container-highest ml-[18px]">
+<div class="flex items-center gap-sm relative">
+<div class="absolute left-[-25px] w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="font-body-md text-body-md text-on-surface">Tech Park West</span>
+</div>
+<div class="flex items-center gap-sm relative">
+<div class="absolute left-[-25px] w-2 h-2 rounded-full border-2 border-primary"></div>
+<span class="font-body-md text-body-md text-on-surface-variant">Central Station</span>
+</div>
+</div>
+<button class="w-full mt-xs bg-surface-container border border-primary/30 text-primary font-label-bold text-label-bold py-sm rounded-full hover:bg-primary/10 transition-all duration-300 flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+                        Assign Driver
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-dim/30 backdrop-blur-2xl fixed bottom-0 left-0 w-full z-50 rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex justify-around items-center px-8 pb-8 pt-4">
+<!-- Active Nav Item -->
+<div class="flex flex-col items-center justify-center bg-gradient-to-b from-primary to-primary-container text-on-primary rounded-full p-3 shadow-[0_0_20px_rgba(255,122,0,0.5)] transform scale-110">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<!-- Inactive Nav Items -->
+<div class="flex flex-col items-center justify-center text-secondary/50 p-3 hover:text-primary-fixed transition-all cursor-pointer">
+<span class="material-symbols-outlined">electric_car</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary/50 p-3 hover:text-primary-fixed transition-all cursor-pointer">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary/50 p-3 hover:text-primary-fixed transition-all cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+</div>
+</nav>
+</body></html>
