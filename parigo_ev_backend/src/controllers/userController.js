@@ -26,6 +26,11 @@ const updateProfilePicture = async (req, res) => {
       'UPDATE users SET profile_picture_url = $1 WHERE phone = $2',
       [imageBase64, phone]
     );
+    // Sync with drivers table if they are a driver
+    await db.query(
+      'UPDATE drivers SET profile_picture_url = $1 WHERE user_id = (SELECT id FROM users WHERE phone = $2)',
+      [imageBase64, phone]
+    );
     res.status(200).json({ success: true, message: 'Profile picture updated successfully' });
   } catch (error) {
     console.error('Error updating profile picture:', error);
@@ -73,6 +78,11 @@ const updateProfile = async (req, res) => {
     await db.query(
       'UPDATE users SET name = $1, email = $2 WHERE phone = $3',
       [name, email, phone]
+    );
+    // Sync with drivers table if they are a driver
+    await db.query(
+      'UPDATE drivers SET name = $1, phone = $2 WHERE user_id = (SELECT id FROM users WHERE phone = $3)',
+      [name, phone, phone]
     );
     res.status(200).json({ success: true, message: 'Profile updated successfully' });
   } catch (error) {

@@ -341,6 +341,23 @@ const updateRideStatus = async (req, res) => {
   }
 };
 
+const updateStatus = async (req, res) => {
+  const { driverId, isOnline } = req.body;
+  if (!driverId || isOnline == null) {
+    return res.status(400).json({ error: 'driverId and isOnline are required' });
+  }
+  try {
+    await db.query(
+      'UPDATE drivers SET is_online = $1 WHERE driver_uid = $2',
+      [isOnline, driverId]
+    );
+    res.status(200).json({ success: true, is_online: isOnline });
+  } catch (error) {
+    console.error('Error updating driver status:', error);
+    res.status(500).json({ error: 'Failed to update driver status' });
+  }
+};
+
 module.exports = {
   getProfile,
   updateLocation,
@@ -349,5 +366,7 @@ module.exports = {
   getAssignedRides,
   getHistoryRides,
   getEarnings,
-  updateRideStatus
+  updateRideStatus,
+  updateStatus
 };
+
