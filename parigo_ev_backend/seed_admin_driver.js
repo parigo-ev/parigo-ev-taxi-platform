@@ -50,7 +50,7 @@ async function seedDatabase() {
     await db.query(`
       INSERT INTO drivers (user_id, driver_uid, name, vehicle_type, aadhar_number, license_number, address, phone)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      ON CONFLICT ON CONSTRAINT drivers_user_id_unique DO UPDATE SET
+      ON CONFLICT (driver_uid) DO UPDATE SET
         name = EXCLUDED.name,
         vehicle_type = EXCLUDED.vehicle_type,
         aadhar_number = EXCLUDED.aadhar_number,
@@ -85,7 +85,7 @@ async function seedDatabase() {
     await db.query(`
       INSERT INTO drivers (user_id, driver_uid, name, vehicle_type, aadhar_number, license_number, address, phone)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      ON CONFLICT ON CONSTRAINT drivers_user_id_unique DO UPDATE SET
+      ON CONFLICT (driver_uid) DO UPDATE SET
         name = EXCLUDED.name,
         vehicle_type = EXCLUDED.vehicle_type,
         aadhar_number = EXCLUDED.aadhar_number,
