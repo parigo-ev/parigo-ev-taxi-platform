@@ -33,6 +33,54 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
   void initState() {
     super.initState();
     _fetchAssignedRides();
+    _fetchInitialBattery();
+  }
+
+  Future<void> _fetchInitialBattery() async {
+    final phone = UserSession().phone;
+    if (phone == null || phone.isEmpty) return;
+
+    try {
+      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/driver/profile/$phone'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['battery'] != null) {
+          setState(() {
+            _batteryLevel = double.tryParse(data['battery'].toString()) ?? 85.0;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch initial battery level: $e');
+    }
+  }
+
+  Future<void> _syncBatteryWithBackend(int battery) async {
+    final uid = UserSession().uid;
+    if (uid == null) return;
+
+    try {
+      final response = await ApiClient.post(
+        Uri.parse('${ApiConstants.baseUrl}/driver/battery'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'driverId': uid,
+          'battery': battery,
+        }),
+      );
+      if (response.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Battery synced at $battery%'),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error syncing battery: $e');
+    }
   }
 
   Future<void> _fetchAssignedRides() async {
@@ -192,6 +240,9 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
                     setState(() {
                       _batteryLevel = val;
                     });
+                  },
+                  onChangeEnd: (val) {
+                    _syncBatteryWithBackend(val.toInt());
                   },
                 ),
                 const Center(
