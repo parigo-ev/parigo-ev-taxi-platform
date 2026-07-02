@@ -8,6 +8,8 @@ import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'core/user_session.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
+import 'package:parigo_ev_app/core/api_constants.dart';
+import 'screens/onboarding_screen.dart';
 
 
 void _reportCrashToAdmin(dynamic error, StackTrace? stack) {
@@ -17,7 +19,7 @@ void _reportCrashToAdmin(dynamic error, StackTrace? stack) {
     final phone = session.phone.isNotEmpty ? session.phone : 'Unknown';
     
     // Send a fire-and-forget request to the backend
-    final url = Uri.parse('http://10.83.69.114:3000/api/admin/report-crash');
+    final url = Uri.parse('${ApiConstants.baseUrl}/admin/report-crash');
     
     ApiClient.post(
       url,
@@ -62,9 +64,13 @@ class ParigoEVApp extends StatelessWidget {
     return MaterialApp(
       title: 'Parigo EV',
       debugShowCheckedModeBanner: false,
+      navigatorKey: appNavigatorKey,
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
       home: const SplashScreen(),
+      routes: {
+        '/': (context) => const OnboardingScreen(),
+      },
     );
   }
 }

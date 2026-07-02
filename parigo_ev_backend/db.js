@@ -2,14 +2,29 @@ require('dotenv').config();
 const { Pool } = require('pg');
 
 // Initialize PostgreSQL connection pool
-// For local development, assuming default postgres user and no password on localhost
-const pool = new Pool({
-  user: process.env.PG_USER || 'postgres',
-  host: process.env.PG_HOST || 'localhost',
-  database: process.env.PG_DATABASE || 'parigo_ev',
-  password: process.env.PG_PASSWORD || 'postgres',
-  port: process.env.PG_PORT || 5432,
-});
+// Supports Railway's DATABASE_URL or individual PG_* env vars for local dev
+let poolConfig;
+
+if (process.env.DATABASE_URL) {
+  // Railway / Production: single connection string
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL.includes('railway') ? { rejectUnauthorized: false } : false
+  };
+  console.log('PostgreSQL: Using DATABASE_URL connection string.');
+} else {
+  // Local development: individual variables
+  poolConfig = {
+    user: process.env.PG_USER || 'postgres',
+    host: process.env.PG_HOST || 'localhost',
+    database: process.env.PG_DATABASE || 'parigo_ev',
+    password: process.env.PG_PASSWORD || 'postgres',
+    port: process.env.PG_PORT || 5432,
+  };
+  console.log('PostgreSQL: Using individual PG_* env vars.');
+}
+
+const pool = new Pool(poolConfig);
 
 // Test connection
 pool.connect((err, client, release) => {

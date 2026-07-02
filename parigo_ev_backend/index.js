@@ -7,9 +7,21 @@ const rateLimit = require('express-rate-limit');
 const fs = require('fs');
 const path = require('path');
 
-// Initialize Firebase Admin
+// Initialize Firebase Admin — supports both local file and Railway env var
 try {
-  const serviceAccount = require('./serviceAccountKey.json');
+  let serviceAccount;
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    // Railway / Production: decode from base64 environment variable
+    const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
+    serviceAccount = JSON.parse(decoded);
+    console.log('Firebase credentials loaded from environment variable.');
+  } else {
+    // Local development: load from file
+    serviceAccount = require('./serviceAccountKey.json');
+    console.log('Firebase credentials loaded from serviceAccountKey.json.');
+  }
+
   if (admin.apps.length === 0) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
@@ -17,7 +29,7 @@ try {
   }
   console.log('Firebase Admin Initialized successfully.');
 } catch (error) {
-  console.warn('Warning: serviceAccountKey.json not found or invalid. Firebase Admin is NOT initialized.');
+  console.warn('Warning: Firebase Admin is NOT initialized.', error.message);
 }
 
 const app = express();
@@ -70,6 +82,7 @@ app.use('/api/ride', verifyToken, rideRoutes);
 app.use('/api/wallet', verifyToken, walletRoutes);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on port ${PORT}`);
 });
+
