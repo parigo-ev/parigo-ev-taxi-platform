@@ -59,6 +59,9 @@ const initDb = async () => {
       name VARCHAR(255),
       vehicle_type VARCHAR(100),
       is_online BOOLEAN DEFAULT false,
+      lat DECIMAL(10, 8),
+      lng DECIMAL(11, 8),
+      battery INTEGER DEFAULT 100,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -103,6 +106,9 @@ const initDb = async () => {
     await pool.query('ALTER TABLE drivers ADD COLUMN IF NOT EXISTS phone VARCHAR(50);');
     await pool.query('ALTER TABLE drivers ADD COLUMN IF NOT EXISTS profile_picture_url TEXT;');
     await pool.query('ALTER TABLE drivers ADD COLUMN IF NOT EXISTS average_rating DECIMAL(3, 2) DEFAULT 5.0;');
+    await pool.query('ALTER TABLE drivers ADD COLUMN IF NOT EXISTS lat DECIMAL(10, 8);');
+    await pool.query('ALTER TABLE drivers ADD COLUMN IF NOT EXISTS lng DECIMAL(11, 8);');
+    await pool.query('ALTER TABLE drivers ADD COLUMN IF NOT EXISTS battery INTEGER DEFAULT 100;');
     
     await pool.query(createRidesHistoryTable);
     

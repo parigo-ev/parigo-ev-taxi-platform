@@ -289,12 +289,12 @@ const addAdmin = async (req, res) => {
 
 const getFleet = async (req, res) => {
   try {
-    const result = await db.query('SELECT driver_uid as id, name, vehicle_type as vehicle, profile_picture_url, is_online FROM drivers');
+    const result = await db.query('SELECT driver_uid as id, name, vehicle_type as vehicle, profile_picture_url, is_online, battery FROM drivers');
     const fleet = result.rows.map(d => ({
       id: d.id,
       name: d.name || 'Unknown',
       vehicle: d.vehicle || 'Unknown EV',
-      battery: Math.floor(Math.random() * 40) + 60, // Mocking battery between 60-100
+      battery: d.battery != null ? parseInt(d.battery) : 100,
       status: d.is_online ? 'ONLINE' : 'OFFLINE',
       range: '210 km', // Mocking range
       profile_picture_url: d.profile_picture_url

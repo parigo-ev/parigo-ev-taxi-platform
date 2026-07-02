@@ -358,6 +358,23 @@ const updateStatus = async (req, res) => {
   }
 };
 
+const updateBattery = async (req, res) => {
+  const { driverId, battery } = req.body;
+  if (!driverId || battery == null) {
+    return res.status(400).json({ error: 'driverId and battery are required' });
+  }
+  try {
+    await db.query(
+      'UPDATE drivers SET battery = $1 WHERE driver_uid = $2',
+      [parseInt(battery), driverId]
+    );
+    res.status(200).json({ success: true, battery: battery });
+  } catch (error) {
+    console.error('Error updating driver battery:', error);
+    res.status(500).json({ error: 'Failed to update battery' });
+  }
+};
+
 module.exports = {
   getProfile,
   updateLocation,
@@ -367,6 +384,7 @@ module.exports = {
   getHistoryRides,
   getEarnings,
   updateRideStatus,
-  updateStatus
+  updateStatus,
+  updateBattery
 };
 

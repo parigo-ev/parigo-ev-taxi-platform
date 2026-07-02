@@ -69,6 +69,7 @@ const verifyOtp = async (req, res) => {
       }
       
       await db.query('UPDATE users SET uid = $1 WHERE phone = $2', [uid, phone]);
+      await db.query('UPDATE drivers SET driver_uid = $1 WHERE user_id = (SELECT id FROM users WHERE phone = $2)', [uid, phone]);
       return res.status(200).json({ success: true, uid: uid, message: 'OTP Verified Successfully', role: user.role });
     }
   } catch (error) {

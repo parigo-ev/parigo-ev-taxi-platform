@@ -12,5 +12,6 @@ router.get('/rides/history', driverController.getHistoryRides);
 router.post('/rides/update-status', driverController.updateRideStatus);
 router.get('/earnings', driverController.getEarnings);
 router.post('/status', driverController.updateStatus);
+router.post('/battery', driverController.updateBattery);
 
 module.exports = router;
