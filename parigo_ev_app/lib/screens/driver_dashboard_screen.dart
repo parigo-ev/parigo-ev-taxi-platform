@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:location/location.dart' as loc;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +13,7 @@ import 'driver_profile_tab.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/parigo_logo.dart';
 import '../core/api_constants.dart';
+import '../core/user_session.dart';
 import '../widgets/location_disclosure_dialog.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
 
@@ -27,23 +27,14 @@ class DriverDashboardScreen extends StatefulWidget {
 
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
-  StreamSubscription<loc.LocationData>? _locationSubscription;
-  final loc.Location _locationService = loc.Location();
-
-  final List<Widget> _tabs = [
-    const DriverHomeTab(),
-    const DriverMapTab(),
-    const DriverEarningsTab(),
-    const DriverProfileTab(),
-  ];
+  bool _isOnline = false;
+  StreamSubscription<Position>? _locationSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkLocationPermission();
-    });
+    _fetchInitialOnlineStatus();
   }
 
   @override
@@ -53,10 +44,73 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
     super.dispose();
   }
 
+  Future<void> _fetchInitialOnlineStatus() async {
+    final phone = UserSession().phone;
+    if (phone == null || phone.isEmpty) return;
+
+    try {
+      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/driver/profile/$phone'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final bool initialOnline = data['is_online'] ?? false;
+        setState(() {
+          _isOnline = initialOnline;
+        });
+        if (initialOnline) {
+          _checkLocationPermission();
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch initial online status: $e');
+    }
+  }
+
+  Future<void> _toggleOnline(bool val) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      _isOnline = val;
+    });
+
+    try {
+      final response = await ApiClient.post(
+        Uri.parse('${ApiConstants.baseUrl}/driver/status'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'driverId': user.uid,
+          'isOnline': val,
+        }),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update status on backend');
+      }
+    } catch (e) {
+      debugPrint('Failed to toggle status: $e');
+      // Revert status on failure
+      setState(() {
+        _isOnline = !val;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e')),
+        );
+      }
+      return;
+    }
+
+    if (val) {
+      _checkLocationPermission();
+    } else {
+      _locationSubscription?.cancel();
+      _locationSubscription = null;
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (_locationSubscription == null) {
+      if (_isOnline && _locationSubscription == null) {
         _checkLocationPermission();
       }
     }
@@ -94,7 +148,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
     if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
       final accepted = await LocationDisclosureDialog.show(
         context,
-        message: 'Parigo EV Driver collects location data to continuously track your position in the background. This allows us to assign you nearby rides and track active trips even when the app is closed or not in use.',
+        message: 'Parigo EV Driver collects location data to continuously track your position. This allows us to assign you nearby rides and track active trips.',
       );
       
       if (accepted != true) return;
@@ -113,26 +167,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
       return;
     }
 
-    // Permission granted, start background service
     _startBackgroundLocation();
   }
 
   Future<void> _startBackgroundLocation() async {
     try {
-      await _locationService.enableBackgroundMode(enable: true);
-      _locationService.changeSettings(
-        accuracy: loc.LocationAccuracy.high,
-        interval: 10000,
-        distanceFilter: 10,
-      );
-
-      _locationSubscription = _locationService.onLocationChanged.listen((loc.LocationData currentLocation) {
-        if (currentLocation.latitude != null && currentLocation.longitude != null) {
-          _updateLocationToBackend(currentLocation.latitude!, currentLocation.longitude!);
+      _locationSubscription?.cancel();
+      _locationSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 10,
+        ),
+      ).listen((Position position) {
+        if (_isOnline) {
+          _updateLocationToBackend(position.latitude, position.longitude);
         }
       });
     } catch (e) {
-      debugPrint('Failed to start background location: $e');
+      debugPrint('Failed to start location stream: $e');
     }
   }
 
@@ -153,6 +205,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
     } catch (e) {
       debugPrint('Failed to update location to backend: $e');
     }
+  }
+
+  List<Widget> _getTabs() {
+    return [
+      DriverHomeTab(
+        isOnline: _isOnline,
+        onToggleOnline: _toggleOnline,
+      ),
+      const DriverMapTab(),
+      const DriverEarningsTab(),
+      const DriverProfileTab(),
+    ];
   }
 
   @override
@@ -204,14 +268,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
                 // Main Tab Content
                 Expanded(
                   child: Stack(
-                    children: List.generate(_tabs.length, (index) {
+                    children: List.generate(_getTabs().length, (index) {
                       return IgnorePointer(
                         ignoring: _currentIndex != index,
                         child: AnimatedOpacity(
                           opacity: _currentIndex == index ? 1.0 : 0.0,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
-                          child: _tabs[index],
+                          child: _getTabs()[index],
                         ),
                       );
                     }),

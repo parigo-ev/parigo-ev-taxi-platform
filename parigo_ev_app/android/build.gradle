@@ -9,9 +9,11 @@ buildscript {
         classpath 'com.google.gms:google-services:4.4.0'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
     }
+}
+allprojects {
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'org.jetbrains.kotlin' && details.requested.name == 'kotlin-gradle-plugin') {
+            if (details.requested.group == 'org.jetbrains.kotlin') {
                 details.useVersion '2.2.0'
             }
         }

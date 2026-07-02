@@ -11,14 +11,19 @@ import 'package:parigo_ev_app/core/api_client.dart';
 
 
 class DriverHomeTab extends StatefulWidget {
-  const DriverHomeTab({super.key});
+  final bool isOnline;
+  final ValueChanged<bool> onToggleOnline;
+  const DriverHomeTab({
+    super.key,
+    required this.isOnline,
+    required this.onToggleOnline,
+  });
 
   @override
   State<DriverHomeTab> createState() => _DriverHomeTabState();
 }
 
 class _DriverHomeTabState extends State<DriverHomeTab> {
-  bool _isOnline = false;
   double _batteryLevel = 85.0; // Default mock battery level
 
   List<dynamic> _assignedRides = [];
@@ -68,9 +73,7 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
-              setState(() {
-                _isOnline = !_isOnline;
-              });
+              widget.onToggleOnline(!widget.isOnline);
             },
             child: Container(
               width: 200,
@@ -95,7 +98,7 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
                   ),
                   AnimatedAlign(
                     duration: const Duration(milliseconds: 200),
-                    alignment: _isOnline
+                    alignment: widget.isOnline
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
                     child: Container(
@@ -104,14 +107,14 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(999),
                         gradient: LinearGradient(
-                          colors: _isOnline
+                          colors: widget.isOnline
                               ? [AppTheme.primaryContainer, AppTheme.primary]
                               : [
                                   AppTheme.surfaceContainerHigh,
                                   AppTheme.surfaceContainer
                                 ],
                         ),
-                        boxShadow: _isOnline
+                        boxShadow: widget.isOnline
                             ? [
                                 BoxShadow(
                                     color: AppTheme.primaryContainer
@@ -122,9 +125,9 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
                       ),
                       child: Center(
                         child: Text(
-                          _isOnline ? 'ONLINE' : 'OFFLINE',
+                          widget.isOnline ? 'ONLINE' : 'OFFLINE',
                           style: TextStyle(
-                              color: _isOnline
+                              color: widget.isOnline
                                   ? AppTheme.onPrimaryContainer
                                   : AppTheme.onSurface,
                               fontWeight: FontWeight.bold,
@@ -138,7 +141,7 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(_isOnline ? 'Receiving ride requests' : 'You are offline',
+          Text(widget.isOnline ? 'Receiving ride requests' : 'You are offline',
               style: const TextStyle(color: AppTheme.onSurfaceVariant)),
 
           // 2. EV Battery Sync Panel
