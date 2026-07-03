@@ -26,6 +26,7 @@ class ScheduledRidesScreen extends StatefulWidget {
 class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
   List<Map<String, dynamic>> _rides = [];
   bool _isLoading = true;
+  final Set<String> _notifiedCompletedRides = {};
 
   Timer? _pollingTimer;
 
@@ -69,7 +70,18 @@ class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
 
         setState(() {
           _rides = fetched
-              .where((r) => r['status'] != 'COMPLETED' && r['status'] != 'CANCELLED')
+              .where((r) {
+                if (r['status'] == 'CANCELLED') return false;
+                if (r['status'] == 'COMPLETED') {
+                  final isPrepaid = r['isPrepaid'] == true;
+                  final rideId = r['id']?.toString() ?? '';
+                  if (isPrepaid && !_notifiedCompletedRides.contains(rideId)) {
+                    return true;
+                  }
+                  return false;
+                }
+                return true;
+              })
               .map<Map<String, dynamic>>((r) {
             String pickup = 'Unknown Pickup';
             if (r['pickup'] is Map) {
@@ -120,6 +132,7 @@ class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
               'estimatedFare': r['estimatedFare']?.toString() ?? '0',
               'finalFare': r['finalFare']?.toString() ?? r['estimatedFare']?.toString() ?? '0',
               'driverDetails': r['driverDetails'],
+              'isPrepaid': r['isPrepaid'] == true,
             };
           }).toList();
           
@@ -127,6 +140,7 @@ class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
         });
 
         _checkPendingPayments();
+        _checkCompletedPrepaidRides();
       } else {
         throw Exception('Failed to load rides');
       }
@@ -155,6 +169,43 @@ class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
           _isPaymentSheetOpen = false;
         });
         break; // Only show for the first one
+      }
+    }
+  }
+
+  void _checkCompletedPrepaidRides() {
+    for (var ride in _rides) {
+      final rideId = ride['id'];
+      final isPrepaid = ride['isPrepaid'] == true;
+      if (ride['status'] == 'COMPLETED' && isPrepaid && !_notifiedCompletedRides.contains(rideId)) {
+        _notifiedCompletedRides.add(rideId);
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Ride Completed'),
+            content: const Text('You have already paid for this ride. Thank you for riding with Parigo EV!'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FeedbackScreen(
+                        role: 'Customer',
+                        rideId: rideId,
+                        otherPartyName: ride['driver_name'] ?? 'Driver',
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        break;
       }
     }
   }

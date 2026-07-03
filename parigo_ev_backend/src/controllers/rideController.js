@@ -229,18 +229,51 @@ const checkSlotAvailability = async (req, res) => {
 
 const scheduleRide = async (req, res) => {
   try {
-    const { pickup, destination, scheduledDate, scheduledTime, exactTime, estimatedFare, distanceKm, uid, paymentMethod, isPrepaid } = req.body;
+    const { pickup, destination, scheduledDate, scheduledTime, exactTime, estimatedFare, distanceKm, uid, paymentMethod, isPrepaid, razorpay_payment_id, razorpay_signature, razorpay_order_id } = req.body;
     
     if (!uid || !pickup || !destination || !scheduledDate || !scheduledTime) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Process pre-booking prepaid payment if isPrepaid is true
+    if (isPrepaid) {
+      if (paymentMethod === 'WALLET') {
+        const walletFare = (parseFloat(estimatedFare) || 0.0) * 0.95; // 5% discount for Wallet
+        
+        // Fetch current wallet balance
+        const walletRes = await db.query('SELECT balance FROM wallets WHERE uid = $1', [uid]);
+        const currentBalance = walletRes.rows.length > 0 ? parseFloat(walletRes.rows[0].balance) : 0.0;
+
+        if (currentBalance < walletFare) {
+          return res.status(400).json({ error: 'Insufficient wallet balance for pre-booking payment.' });
+        }
+
+        // Deduct and insert transaction
+        await db.query('UPDATE wallets SET balance = balance - $1 WHERE uid = $2', [walletFare, uid]);
+        await db.query(
+          "INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'DEBIT', $3)",
+          [uid, walletFare, `Pre-paid for scheduled ride`]
+        );
+      } else if (paymentMethod === 'RAZORPAY') {
+        if (razorpay_payment_id && razorpay_signature && razorpay_order_id) {
+          const crypto = require('crypto');
+          const generated_signature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(razorpay_order_id + '|' + razorpay_payment_id)
+            .digest('hex');
+
+          if (generated_signature !== razorpay_signature) {
+            return res.status(400).json({ error: 'Invalid Razorpay signature for prepaid ride' });
+          }
+        } else {
+          return res.status(400).json({ error: 'Razorpay payment verification details are required for prepaid UPI' });
+        }
+      }
+    }
+
     const dateObj = new Date(scheduledDate);
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    // In JS getDay() returns 0 for Sun, 1 for Mon. 
-    // Wait, the Dart code uses: `weekdays[d.weekday - 1]`. Dart DateTime.weekday is 1 (Mon) to 7 (Sun).
-    // So Dart 'Mon' is Mon. JS getDay() 1 is Mon.
     let jsDay = dateObj.getDay() - 1;
     if (jsDay < 0) jsDay = 6; // Sun is 6
     const dartWeekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -249,7 +282,7 @@ const scheduleRide = async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     const rideRef = admin.firestore().collection('rides').doc();
 
-    await rideRef.set({
+    const ridePayload = {
       uid: uid,
       pickup: pickup,
       destination: destination,
@@ -265,7 +298,22 @@ const scheduleRide = async (req, res) => {
       paymentMethod: paymentMethod || 'CASH',
       isPrepaid: isPrepaid || false,
       otp: otp
-    });
+    };
+
+    if (isPrepaid) {
+      if (paymentMethod === 'WALLET') {
+        ridePayload.finalFare = (parseFloat(estimatedFare) || 0.0) * 0.95;
+      } else {
+        ridePayload.finalFare = parseFloat(estimatedFare) || 0.0;
+      }
+      if (razorpay_payment_id) {
+        ridePayload.razorpay_payment_id = razorpay_payment_id;
+        ridePayload.razorpay_signature = razorpay_signature || null;
+        ridePayload.razorpay_order_id = razorpay_order_id || null;
+      }
+    }
+
+    await rideRef.set(ridePayload);
 
     res.status(201).json({ success: true, rideId: rideRef.id, otp: otp });
   } catch (error) {

@@ -451,43 +451,61 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => PreBookingPaymentSheet(
         baseFare: baseFare,
-        onPaymentConfirmed: (method, isPrepaid) {
-          _scheduleRide(method, isPrepaid);
+        onPaymentConfirmed: (method, isPrepaid, {razorpayPaymentId, razorpaySignature, razorpayOrderId}) {
+          _scheduleRide(
+            method,
+            isPrepaid,
+            razorpayPaymentId: razorpayPaymentId,
+            razorpaySignature: razorpaySignature,
+            razorpayOrderId: razorpayOrderId,
+          );
         },
       ),
     );
   }
 
-  Future<void> _scheduleRide(String paymentMethod, bool isPrepaid) async {
+  Future<void> _scheduleRide(
+    String paymentMethod, 
+    bool isPrepaid, {
+    String? razorpayPaymentId,
+    String? razorpaySignature,
+    String? razorpayOrderId,
+  }) async {
     setState(() {
       _isScheduling = true;
     });
 
     try {
+      final body = {
+        'pickup': {
+          'lat': widget.pickup['lat'],
+          'lng': widget.pickup['lng'],
+          'description': widget.pickup['description'],
+        },
+        'destination': {
+          'lat': widget.destination['lat'],
+          'lng': widget.destination['lng'],
+          'description': widget.destination['description'],
+        },
+        'scheduledDate': _selectedDate!.toIso8601String(),
+        'scheduledTime': _selectedTime,
+        'exactTime': _selectedSubTime,
+        'estimatedFare': _estimatedFare,
+        'distanceKm': _distanceKm,
+        'uid': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
+        'paymentMethod': paymentMethod,
+        'isPrepaid': isPrepaid,
+      };
+
+      if (razorpayPaymentId != null) body['razorpay_payment_id'] = razorpayPaymentId;
+      if (razorpaySignature != null) body['razorpay_signature'] = razorpaySignature;
+      if (razorpayOrderId != null) body['razorpay_order_id'] = razorpayOrderId;
+
       final response = await ApiClient
           .post(
             Uri.parse('${ApiConstants.baseUrl}/ride/schedule'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'pickup': {
-                'lat': widget.pickup['lat'],
-                'lng': widget.pickup['lng'],
-                'description': widget.pickup['description'],
-              },
-              'destination': {
-                'lat': widget.destination['lat'],
-                'lng': widget.destination['lng'],
-                'description': widget.destination['description'],
-              },
-              'scheduledDate': _selectedDate!.toIso8601String(),
-              'scheduledTime': _selectedTime,
-              'exactTime': _selectedSubTime,
-              'estimatedFare': _estimatedFare,
-              'distanceKm': _distanceKm,
-              'uid': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
-              'paymentMethod': paymentMethod,
-              'isPrepaid': isPrepaid
-            }),
+            body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 10));
 
