@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
@@ -9,6 +9,7 @@ import '../widgets/primary_button.dart';
 import '../core/api_constants.dart';
 import '../core/user_session.dart';
 import '../screens/feedback_screen.dart';
+import '../screens/wallet_screen.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
 
 
@@ -28,11 +29,48 @@ class _PaymentSelectionBottomSheetState extends State<PaymentSelectionBottomShee
   
   double _walletBalance = 0.0;
   bool _isLoadingWallet = true;
+  late Razorpay _razorpay;
 
   @override
   void initState() {
     super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handleRazorpayPaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleRazorpayPaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleRazorpayExternalWallet);
     _fetchWalletBalance();
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+    super.dispose();
+  }
+
+  void _handleRazorpayPaymentSuccess(PaymentSuccessResponse response) {
+    _completeRidePayment(
+      razorpayPaymentId: response.paymentId,
+      razorpaySignature: response.signature,
+      razorpayOrderId: response.orderId,
+    );
+  }
+
+  void _handleRazorpayPaymentError(PaymentFailureResponse response) {
+    if (mounted) {
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment Failed: ${response.message}')),
+      );
+    }
+  }
+
+  void _handleRazorpayExternalWallet(ExternalWalletResponse response) {
+    if (mounted) {
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('External Wallet: ${response.walletName}')),
+      );
+    }
   }
 
   Future<void> _fetchWalletBalance() async {
@@ -69,18 +107,91 @@ class _PaymentSelectionBottomSheetState extends State<PaymentSelectionBottomShee
 
   Future<void> _processPayment() async {
     final uid = UserSession().uid;
-    if (uid == null) return;
+    if (uid.isEmpty) return;
 
     if (_selectedMethod == 'WALLET') {
       if (_walletBalance < _walletFare) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Insufficient Wallet Balance. Please Top Up.')));
-        // Navigate to Wallet Screen or show topup UI
+            const SnackBar(content: Text('Insufficient Wallet Balance. Redirecting to top up...')));
+        
+        // Redirect to Wallet Screen (user can come back and select another mode)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const WalletScreen()),
+        ).then((_) {
+          // Fetch updated balance on return
+          _fetchWalletBalance();
+        });
         return;
       }
     }
 
     setState(() => _isProcessing = true);
+
+    if (_selectedMethod == 'UPI' && _selectedUpiApp == 'RAZORPAY') {
+      _startRazorpayFlow();
+      return;
+    }
+
+    await _completeRidePayment();
+  }
+
+  Future<void> _startRazorpayFlow() async {
+    final phone = UserSession().phone;
+    final cleanPhone = phone.replaceAll('+91', '').trim().isEmpty ? '1234567890' : phone.replaceAll('+91', '').trim();
+
+    try {
+      final body = jsonEncode({'amount': _baseFare});
+      final res = await ApiClient.post(
+        Uri.parse('${ApiConstants.baseUrl}/wallet/create-order'),
+        body: body,
+      );
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final orderId = data['order']['id'];
+
+        var options = {
+          'key': 'rzp_live_T4ez8Jy477DN1A',
+          'amount': (_baseFare * 100).toInt(),
+          'name': 'Parigo EV',
+          'description': 'Ride Payment - Ride ID: ${widget.rideData['id']}',
+          'order_id': orderId,
+          'prefill': {
+            'contact': cleanPhone,
+            'email': 'customer@parigo.com'
+          },
+          'theme': {
+            'color': '#3366FF'
+          }
+        };
+
+        _razorpay.open(options);
+      } else {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to initialize Razorpay')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Network error initializing payment')),
+        );
+      }
+    }
+  }
+
+  Future<void> _completeRidePayment({
+    String? razorpayPaymentId,
+    String? razorpaySignature,
+    String? razorpayOrderId,
+  }) async {
+    final uid = UserSession().uid;
+    if (uid.isEmpty) return;
 
     String finalPaymentMethod = _selectedMethod;
     if (_selectedMethod == 'UPI') {
@@ -88,15 +199,21 @@ class _PaymentSelectionBottomSheetState extends State<PaymentSelectionBottomShee
     }
 
     try {
+      final body = {
+        'rideId': widget.rideData['id'],
+        'uid': uid,
+        'paymentMethod': finalPaymentMethod,
+        'fare': _selectedMethod == 'WALLET' ? _walletFare : _baseFare
+      };
+
+      if (razorpayPaymentId != null) body['razorpay_payment_id'] = razorpayPaymentId;
+      if (razorpaySignature != null) body['razorpay_signature'] = razorpaySignature;
+      if (razorpayOrderId != null) body['razorpay_order_id'] = razorpayOrderId;
+
       final response = await ApiClient.post(
         Uri.parse('${ApiConstants.baseUrl}/ride/pay'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'rideId': widget.rideData['id'],
-          'uid': uid,
-          'paymentMethod': finalPaymentMethod,
-          'fare': _selectedMethod == 'WALLET' ? _walletFare : _baseFare
-        }),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode == 200) {

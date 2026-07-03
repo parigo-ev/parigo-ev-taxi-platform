@@ -341,11 +341,31 @@ const payRide = async (req, res) => {
     }
 
     // 2. Update ride status in Firestore to COMPLETED
-    await rideRef.update({
+    const updatePayload = {
       status: 'COMPLETED',
       paymentMethod: paymentMethod,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
+    };
+
+    if (req.body.razorpay_payment_id) {
+      const { razorpay_payment_id, razorpay_signature, razorpay_order_id } = req.body;
+      if (razorpay_signature && razorpay_order_id) {
+        const crypto = require('crypto');
+        const generated_signature = crypto
+          .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+          .update(razorpay_order_id + '|' + razorpay_payment_id)
+          .digest('hex');
+
+        if (generated_signature !== razorpay_signature) {
+          return res.status(400).json({ error: 'Invalid Razorpay signature' });
+        }
+      }
+      updatePayload.razorpay_payment_id = razorpay_payment_id;
+      updatePayload.razorpay_signature = razorpay_signature || null;
+      updatePayload.razorpay_order_id = razorpay_order_id || null;
+    }
+
+    await rideRef.update(updatePayload);
 
     // 3. Update PostgreSQL rides_history status to COMPLETED and update payment method
     await db.query(
