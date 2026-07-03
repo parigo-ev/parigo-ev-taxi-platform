@@ -67,7 +67,7 @@ class _RideChatBottomSheetState extends State<RideChatBottomSheet> {
   Future<void> _fetchMessages({bool isBackground = false}) async {
     try {
       final response = await ApiClient.get(
-        Uri.parse('${ApiConstants.baseUrl}/rides/${widget.rideId}/messages'),
+        Uri.parse('${ApiConstants.baseUrl}/ride/${widget.rideId}/messages'),
       );
 
       if (response.statusCode == 200) {
@@ -115,7 +115,7 @@ class _RideChatBottomSheetState extends State<RideChatBottomSheet> {
 
     try {
       final response = await ApiClient.post(
-        Uri.parse('${ApiConstants.baseUrl}/rides/${widget.rideId}/messages'),
+        Uri.parse('${ApiConstants.baseUrl}/ride/${widget.rideId}/messages'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'senderRole': widget.role,

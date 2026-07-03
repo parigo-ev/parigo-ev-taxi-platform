@@ -55,7 +55,7 @@ class _PaymentSelectionBottomSheetState extends State<PaymentSelectionBottomShee
   }
 
   double get _baseFare {
-    return double.tryParse(widget.rideData['estimatedFare']?.toString() ?? '0') ?? 0.0;
+    return double.tryParse(widget.rideData['finalFare']?.toString() ?? widget.rideData['estimatedFare']?.toString() ?? '0') ?? 0.0;
   }
 
   double get _walletFare {
@@ -84,7 +84,7 @@ class _PaymentSelectionBottomSheetState extends State<PaymentSelectionBottomShee
 
     try {
       final response = await ApiClient.post(
-        Uri.parse('${ApiConstants.baseUrl}/rides/pay'),
+        Uri.parse('${ApiConstants.baseUrl}/ride/pay'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'rideId': widget.rideData['id'],

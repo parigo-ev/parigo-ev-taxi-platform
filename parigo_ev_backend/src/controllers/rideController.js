@@ -305,6 +305,122 @@ const getCustomerRides = async (req, res) => {
   }
 };
 
+const payRide = async (req, res) => {
+  const { rideId, uid, paymentMethod, fare } = req.body;
+  if (!rideId || !uid || !paymentMethod || fare == null) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const rideRef = admin.firestore().collection('rides').doc(rideId);
+    const rideDoc = await rideRef.get();
+    if (!rideDoc.exists) {
+      return res.status(404).json({ error: 'Ride not found' });
+    }
+
+    const ride = rideDoc.data();
+
+    // 1. If payment method is WALLET, deduct balance
+    if (paymentMethod === 'WALLET') {
+      const walletRes = await db.query('SELECT balance FROM wallets WHERE uid = $1', [uid]);
+      const currentBalance = walletRes.rows.length > 0 ? parseFloat(walletRes.rows[0].balance) : 0.0;
+
+      if (currentBalance < fare) {
+        return res.status(400).json({ error: 'Insufficient wallet balance' });
+      }
+
+      await db.query(
+        'UPDATE wallets SET balance = balance - $1 WHERE uid = $2',
+        [fare, uid]
+      );
+
+      await db.query(
+        "INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'DEBIT', $3)",
+        [uid, fare, `Paid for Ride ID: ${rideId}`]
+      );
+    }
+
+    // 2. Update ride status in Firestore to COMPLETED
+    await rideRef.update({
+      status: 'COMPLETED',
+      paymentMethod: paymentMethod,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 3. Update PostgreSQL rides_history status to COMPLETED and update payment method
+    await db.query(
+      "UPDATE rides_history SET status = 'COMPLETED', payment_method = $1 WHERE ride_id = $2",
+      [paymentMethod, rideId]
+    );
+
+    // 4. Create Notification for Customer
+    try {
+      const driverRes = await db.query(
+        'SELECT u.name FROM users u JOIN drivers d ON u.id = d.user_id WHERE d.driver_uid = $1',
+        [ride.assignedDriverId]
+      );
+      const driverName = driverRes.rows.length > 0 ? driverRes.rows[0].name : 'your driver';
+
+      const metadata = JSON.stringify({
+        rideId: rideId,
+        otherPartyName: driverName
+      });
+
+      await db.query(
+        'INSERT INTO notifications (uid, title, message, type, metadata) VALUES ($1, $2, $3, $4, $5)',
+        [uid, 'Ride Completed', `Your trip was successfully completed. Please rate your experience with ${driverName}.`, 'ride_complete', metadata]
+      );
+    } catch (err) {
+      console.error('Error inserting ride complete notification:', err);
+    }
+
+    res.status(200).json({ success: true, message: 'Payment processed and ride completed successfully' });
+  } catch (error) {
+    console.error('Error processing ride payment:', error);
+    res.status(500).json({ error: 'Failed to process payment' });
+  }
+};
+
+const getMessages = async (req, res) => {
+  const { rideId } = req.params;
+  try {
+    const messagesRef = admin.firestore().collection('rides').doc(rideId).collection('messages');
+    const snapshot = await messagesRef.orderBy('createdAt', 'asc').get();
+    
+    const messages = [];
+    snapshot.forEach(doc => {
+      messages.push({ id: doc.id, ...doc.data() });
+    });
+    
+    res.status(200).json({ success: true, messages });
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+};
+
+const sendMessage = async (req, res) => {
+  const { rideId } = req.params;
+  const { senderRole, text } = req.body;
+  if (!senderRole || !text) {
+    return res.status(400).json({ error: 'senderRole and text are required' });
+  }
+
+  try {
+    const messagesRef = admin.firestore().collection('rides').doc(rideId).collection('messages');
+    const newMessageRef = await messagesRef.add({
+      senderRole,
+      text,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(201).json({ success: true, messageId: newMessageRef.id });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+};
+
 module.exports = {
   createRide,
   getActiveRide,
@@ -314,5 +430,8 @@ module.exports = {
   cancelRide,
   estimateFare,
   checkSlotAvailability,
-  scheduleRide
+  scheduleRide,
+  payRide,
+  getMessages,
+  sendMessage
 };

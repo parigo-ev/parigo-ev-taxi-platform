@@ -61,7 +61,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     try {
       final response = await ApiClient.post(
-        Uri.parse('${ApiConstants.baseUrl}/rides/feedback'),
+        Uri.parse('${ApiConstants.baseUrl}/ride/feedback'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'rideId': widget.rideId,

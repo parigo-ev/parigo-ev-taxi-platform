@@ -117,6 +117,9 @@ class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
               'assignedDriverId': r['assignedDriverId']?.toString() ?? r['driverId']?.toString(),
               'raw_pickup': r['pickup'],
               'raw_destination': r['destination'],
+              'estimatedFare': r['estimatedFare']?.toString() ?? '0',
+              'finalFare': r['finalFare']?.toString() ?? r['estimatedFare']?.toString() ?? '0',
+              'driverDetails': r['driverDetails'],
             };
           }).toList();
           
