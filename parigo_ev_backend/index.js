@@ -79,6 +79,7 @@ app.use('/api/user', verifyToken, userRoutes);
 app.use('/api/driver', verifyToken, driverRoutes);
 app.use('/api/admin', verifyToken, adminRoutes);
 app.use('/api/ride', verifyToken, rideRoutes);
+app.use('/api/rides', verifyToken, rideRoutes);
 app.use('/api/wallet', verifyToken, walletRoutes);
 
 const PORT = process.env.PORT || 3000;

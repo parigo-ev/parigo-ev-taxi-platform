@@ -107,11 +107,18 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 100, top: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    return RefreshIndicator(
+      color: AppTheme.primary,
+      onRefresh: () async {
+        await _fetchAssignedRides();
+        await _fetchInitialBattery();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 100, top: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           // 1. Status Toggle
           Text('CURRENT STATUS',
               style: Theme.of(context)
@@ -353,10 +360,23 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
           const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text('Assigned Queue',
-                  style: Theme.of(context).textTheme.headlineMedium),
+              Row(
+                children: [
+                  Text('Assigned Queue',
+                      style: Theme.of(context).textTheme.headlineMedium),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: AppTheme.primary),
+                    onPressed: () {
+                      _fetchAssignedRides();
+                      _fetchInitialBattery();
+                    },
+                    tooltip: 'Reload screen',
+                  ),
+                ],
+              ),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -386,8 +406,9 @@ class _DriverHomeTabState extends State<DriverHomeTab> {
             ..._assignedRides.map((ride) => _buildRideCard(ride)).toList(),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildRideCard(dynamic ride) {
     return GestureDetector(
