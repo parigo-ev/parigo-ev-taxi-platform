@@ -377,7 +377,15 @@ const payRide = async (req, res) => {
     res.status(200).json({ success: true, message: 'Payment processed and ride completed successfully' });
   } catch (error) {
     console.error('Error processing ride payment:', error);
-    res.status(500).json({ error: 'Failed to process payment' });
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const logMsg = `[${new Date().toISOString()}] RideId: ${rideId || 'N/A'}, UID: ${uid || 'N/A'}, Error: ${error.message}\nStack: ${error.stack}\n\n`;
+      fs.appendFileSync(path.join(__dirname, '../../uploads/error_log.txt'), logMsg);
+    } catch (logErr) {
+      console.error('Failed to write to error log file:', logErr);
+    }
+    res.status(500).json({ error: 'Failed to process payment', details: error.message });
   }
 };
 

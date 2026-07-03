@@ -108,12 +108,26 @@ class _PaymentSelectionBottomSheetState extends State<PaymentSelectionBottomShee
           ),
         );
       } else {
-        throw Exception('Payment failed');
+        String errorMsg = 'Payment failed';
+        try {
+          final errData = jsonDecode(response.body);
+          if (errData['error'] != null) {
+            errorMsg = errData['error'];
+            if (errData['details'] != null) {
+              errorMsg += ': ${errData['details']}';
+            }
+          }
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
     } catch (e) {
       if (mounted) {
+        String cleanMessage = e.toString();
+        if (cleanMessage.startsWith('Exception: ')) {
+          cleanMessage = cleanMessage.replaceFirst('Exception: ', '');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error processing payment')));
+            SnackBar(content: Text('Error: $cleanMessage')));
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
