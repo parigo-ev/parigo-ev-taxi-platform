@@ -322,6 +322,31 @@ const phonepeVerifyPayment = async (req, res) => {
   }
 };
 
+const getBalanceByIdentifier = async (req, res) => {
+  const { identifier } = req.params;
+  try {
+    let result;
+    // Check if identifier is a phone number (e.g. contains only digits and possibly starting with +)
+    if (/^\+?[0-9]+$/.test(identifier)) {
+      result = await db.query('SELECT uid FROM users WHERE phone = $1', [identifier]);
+    } else {
+      result = await db.query('SELECT uid FROM users WHERE uid = $1', [identifier]);
+    }
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const uid = result.rows[0].uid;
+    const walletRes = await db.query('SELECT balance FROM wallets WHERE uid = $1', [uid]);
+    const balance = walletRes.rows.length > 0 ? walletRes.rows[0].balance : 0;
+    res.status(200).json({ success: true, balance: parseFloat(balance) });
+  } catch (error) {
+    console.error('Error fetching balance by identifier:', error);
+    res.status(500).json({ error: 'Failed to fetch balance' });
+  }
+};
+
 module.exports = {
   getBalance,
   getTransactions,
@@ -330,5 +355,6 @@ module.exports = {
   verifyPayment,
   razorpayWebhook,
   phonepeCreateOrder,
-  phonepeVerifyPayment
+  phonepeVerifyPayment,
+  getBalanceByIdentifier
 };

@@ -9,5 +9,6 @@ router.post('/create-order', walletController.createRazorpayOrder);
 router.post('/verify-payment', walletController.verifyPayment);
 router.post('/phonepe/create-order', walletController.phonepeCreateOrder);
 router.post('/phonepe/verify', walletController.phonepeVerifyPayment);
+router.get('/:identifier', walletController.getBalanceByIdentifier);
 
 module.exports = router;

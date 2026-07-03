@@ -40,10 +40,13 @@ class _PreBookingPaymentSheetState extends State<PreBookingPaymentSheet> {
   }
 
   Future<void> _fetchWalletBalance() async {
-    final uid = UserSession().uid;
-    if (uid == null) return;
+    final phone = UserSession().phone;
+    if (phone.isEmpty) {
+      if (mounted) setState(() => _isLoadingWallet = false);
+      return;
+    }
     try {
-      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/wallet/$uid'));
+      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/wallet/balance/$phone'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -52,6 +55,8 @@ class _PreBookingPaymentSheetState extends State<PreBookingPaymentSheet> {
             _isLoadingWallet = false;
           });
         }
+      } else {
+        if (mounted) setState(() => _isLoadingWallet = false);
       }
     } catch (e) {
       if (mounted) setState(() => _isLoadingWallet = false);
