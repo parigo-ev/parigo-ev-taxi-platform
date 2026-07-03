@@ -403,7 +403,15 @@ const getMessages = async (req, res) => {
     res.status(200).json({ success: true, messages });
   } catch (error) {
     console.error('Error fetching messages:', error);
-    res.status(500).json({ error: 'Failed to fetch messages' });
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const logMsg = `[${new Date().toISOString()}] FetchMessages - RideId: ${rideId || 'N/A'}, Error: ${error.message}\nStack: ${error.stack}\n\n`;
+      fs.appendFileSync(path.join(__dirname, '../../uploads/error_log.txt'), logMsg);
+    } catch (logErr) {
+      console.error('Failed to write to error log file:', logErr);
+    }
+    res.status(500).json({ error: 'Failed to fetch messages', details: error.message });
   }
 };
 
@@ -425,7 +433,15 @@ const sendMessage = async (req, res) => {
     res.status(201).json({ success: true, messageId: newMessageRef.id });
   } catch (error) {
     console.error('Error sending message:', error);
-    res.status(500).json({ error: 'Failed to send message' });
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const logMsg = `[${new Date().toISOString()}] SendMessage - RideId: ${rideId || 'N/A'}, Role: ${senderRole || 'N/A'}, Error: ${error.message}\nStack: ${error.stack}\n\n`;
+      fs.appendFileSync(path.join(__dirname, '../../uploads/error_log.txt'), logMsg);
+    } catch (logErr) {
+      console.error('Failed to write to error log file:', logErr);
+    }
+    res.status(500).json({ error: 'Failed to send message', details: error.message });
   }
 };
 

@@ -86,6 +86,14 @@ class _RideChatBottomSheetState extends State<RideChatBottomSheet> {
               _scrollToBottom();
             }
           }
+        } else {
+          if (mounted && !isBackground) {
+            setState(() => _isLoading = false);
+          }
+        }
+      } else {
+        if (mounted && !isBackground) {
+          setState(() => _isLoading = false);
         }
       }
     } catch (e) {
@@ -124,14 +132,28 @@ class _RideChatBottomSheetState extends State<RideChatBottomSheet> {
       );
 
       if (response.statusCode != 201) {
-        throw Exception('Failed to send message');
+        String errorMsg = 'Failed to send message';
+        try {
+          final errData = jsonDecode(response.body);
+          if (errData['error'] != null) {
+            errorMsg = errData['error'];
+            if (errData['details'] != null) {
+              errorMsg += ': ${errData['details']}';
+            }
+          }
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
       _fetchMessages(isBackground: true);
     } catch (e) {
       print('Error sending message: $e');
       if (mounted) {
+        String cleanMessage = e.toString();
+        if (cleanMessage.startsWith('Exception: ')) {
+          cleanMessage = cleanMessage.replaceFirst('Exception: ', '');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to send message. Please try again.')),
+          SnackBar(content: Text('Error: $cleanMessage')),
         );
       }
     } finally {
