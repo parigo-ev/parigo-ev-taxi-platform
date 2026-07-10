@@ -246,7 +246,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       backgroundColor: AppTheme.surfaceContainer,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(999),
-                        borderSide: BorderSide(
+                        side: BorderSide(
                           color: isSelected 
                               ? (_rating >= 4 ? AppTheme.primary : AppTheme.error)
                               : AppTheme.outline,
