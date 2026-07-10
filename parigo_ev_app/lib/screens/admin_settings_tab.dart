@@ -10,6 +10,7 @@ import '../core/user_session.dart';
 import '../screens/login_screen.dart';
 import 'admin_dashboard_screen.dart';
 import '../widgets/add_admin_sheet.dart';
+import '../widgets/create_coupon_sheet.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
 
 
@@ -454,6 +455,69 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                               builder: (context) => AddAdminSheet(
                                 onAdminAdded: () {
                                   // Optionally do something after admin is added
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // 5. Coupon Management (NEW FEATURE)
+              Text('Coupon Management',
+                  style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 16),
+              GlassCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.local_offer, color: AppTheme.primaryContainer, size: 28),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Create Discount Coupons',
+                                    style: TextStyle(
+                                        color: AppTheme.onSurface,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold)),
+                                Text('Generate coupons for all or specific customers',
+                                    style: TextStyle(
+                                        color: AppTheme.onSurfaceVariant,
+                                        fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.add, color: AppTheme.primaryContainer),
+                          label: const Text('Generate Coupon', style: TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppTheme.primaryContainer),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => CreateCouponSheet(
+                                onCouponCreated: () {
+                                  // Code to execute after coupon is created
                                 },
                               ),
                             );

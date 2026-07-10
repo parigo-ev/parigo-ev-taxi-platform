@@ -513,6 +513,52 @@ const sendMessage = async (req, res) => {
   }
 };
 
+const validateCoupon = async (req, res) => {
+  const { code, phone } = req.body;
+  if (!code) {
+    return res.status(400).json({ error: 'Coupon code is required' });
+  }
+
+  const upperCode = code.trim().toUpperCase();
+
+  try {
+    const couponResult = await db.query('SELECT * FROM coupons WHERE code = $1', [upperCode]);
+    if (couponResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Invalid coupon code' });
+    }
+
+    const coupon = couponResult.rows[0];
+
+    // If coupon is targeted at individual phone, check if it matches the current user's phone number
+    if (coupon.target_type === 'INDIVIDUAL') {
+      if (!phone) {
+        return res.status(400).json({ error: 'Customer phone number is required to validate this coupon' });
+      }
+      
+      const cleanPhone = phone.trim();
+      const targetPhone = coupon.target_phone.trim();
+      
+      // Compare last 10 digits to handle prefix differences like +91 or 0
+      const cleanPhoneSuffix = cleanPhone.slice(-10);
+      const targetPhoneSuffix = targetPhone.slice(-10);
+
+      if (cleanPhoneSuffix !== targetPhoneSuffix) {
+        return res.status(403).json({ success: false, message: 'This coupon is not valid for your mobile number' });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      code: coupon.code,
+      discountType: coupon.discount_type,
+      discountValue: parseFloat(coupon.discount_value)
+    });
+  } catch (error) {
+    console.error('Error validating coupon:', error);
+    res.status(500).json({ error: 'Failed to validate coupon' });
+  }
+};
+
 module.exports = {
   createRide,
   getActiveRide,
@@ -525,5 +571,6 @@ module.exports = {
   scheduleRide,
   payRide,
   getMessages,
-  sendMessage
+  sendMessage,
+  validateCoupon
 };

@@ -31,6 +31,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   int _rating = 0;
   final _feedbackController = TextEditingController();
   bool _isLoading = false;
+  final Set<String> _selectedTags = {};
 
   void _returnToHome() {
     if (widget.role == 'Customer') {
@@ -48,6 +49,44 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     }
   }
 
+  List<String> _getTemplates() {
+    if (widget.role == 'Customer') {
+      if (_rating >= 4) {
+        return [
+          'Smooth Ride 🚗',
+          'Clean EV ⚡',
+          'Polite Driver 🤝',
+          'Safe Driving 🛡️',
+          'Great Route 🧭',
+        ];
+      } else {
+        return [
+          'Reckless Driving ⚠️',
+          'Vehicle Unclean 🧹',
+          'Rude Behavior 😡',
+          'Delayed Arrival ⏰',
+          'Wrong Route 🗺️',
+        ];
+      }
+    } else {
+      if (_rating >= 4) {
+        return [
+          'Polite Rider 🤝',
+          'On Time ⏱️',
+          'Great Conversation 💬',
+          'Respectful 😇',
+        ];
+      } else {
+        return [
+          'Kept Me Waiting ⏳',
+          'Rude Rider 😡',
+          'Unreasonable Request 🙅',
+          'No Show 🚫',
+        ];
+      }
+    }
+  }
+
   Future<void> _submitFeedback() async {
     if (_rating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -59,6 +98,16 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       _isLoading = true;
     });
 
+    final String comment = _feedbackController.text.trim();
+    final List<String> feedbackParts = [];
+    if (_selectedTags.isNotEmpty) {
+      feedbackParts.add(_selectedTags.join(', '));
+    }
+    if (comment.isNotEmpty) {
+      feedbackParts.add(comment);
+    }
+    final String finalFeedback = feedbackParts.join('. ');
+
     try {
       final response = await ApiClient.post(
         Uri.parse('${ApiConstants.baseUrl}/ride/feedback'),
@@ -67,7 +116,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           'rideId': widget.rideId,
           'role': widget.role,
           'rating': _rating,
-          'feedback': _feedbackController.text.trim(),
+          'feedback': finalFeedback,
         }),
       );
 
@@ -84,10 +133,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
+      }
     }
   }
 
@@ -156,12 +206,67 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     onPressed: () {
                       setState(() {
                         _rating = index + 1;
+                        _selectedTags.clear();
                       });
                     },
                   );
                 }),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
+
+              // Quick Feedback Templates
+              if (_rating > 0) ...[
+                Text(
+                  'Quick Feedback',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryContainer,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: _getTemplates().map((tag) {
+                    final isSelected = _selectedTags.contains(tag);
+                    return FilterChip(
+                      label: Text(
+                        tag,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppTheme.onSurface,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 12,
+                        ),
+                      ),
+                      selected: isSelected,
+                      selectedColor: _rating >= 4 ? AppTheme.primary : AppTheme.error,
+                      checkmarkColor: Colors.white,
+                      backgroundColor: AppTheme.surfaceContainer,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
+                        borderSide: BorderSide(
+                          color: isSelected 
+                              ? (_rating >= 4 ? AppTheme.primary : AppTheme.error)
+                              : AppTheme.outline,
+                          width: 1,
+                        ),
+                      ),
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedTags.add(tag);
+                          } else {
+                            _selectedTags.remove(tag);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+              ],
 
               // Feedback Text Field
               GlassCard(

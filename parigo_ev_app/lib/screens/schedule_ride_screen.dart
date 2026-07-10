@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import '../theme/app_theme.dart';
 import '../core/api_constants.dart';
+import '../core/user_session.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/pre_booking_payment_sheet.dart';
@@ -30,6 +30,7 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
   String? _selectedTime;
   String? _selectedSubTime;
   String? _estimatedFare;
+  String? _originalFare;
   String? _distanceKm;
   bool _isLoadingFare = true;
   bool _isScheduling = false;
@@ -37,10 +38,103 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
   // Capacity state
   Map<String, int> _bookedSlots = {};
   int _maxCapacity = 5;
+
+  // Coupon state
+  final _couponController = TextEditingController();
+  String? _appliedCoupon;
+  double _couponDiscount = 0.0;
+  bool _isCouponApplied = false;
+  String? _couponError;
+
   @override
   void initState() {
     super.initState();
     _fetchFareEstimate();
+  }
+
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _applyCouponCode(String code) async {
+    if (_originalFare == null) return;
+    final double baseFare = double.tryParse(_originalFare!) ?? 0.0;
+    if (baseFare == 0.0) return;
+
+    final cleanCode = code.trim().toUpperCase();
+    
+    setState(() {
+      _couponError = null;
+      _isLoadingFare = true;
+    });
+
+    try {
+      final response = await ApiClient.post(
+        Uri.parse('${ApiConstants.baseUrl}/ride/coupon/validate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'code': cleanCode,
+          'phone': UserSession().phone,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final String discountType = data['discountType'];
+        final double discountValue = (data['discountValue'] as num).toDouble();
+
+        double discount = 0.0;
+        if (discountType == 'PERCENTAGE') {
+          discount = baseFare * (discountValue / 100);
+        } else {
+          discount = discountValue;
+        }
+
+        if (discount > baseFare) discount = baseFare;
+
+        setState(() {
+          _appliedCoupon = cleanCode;
+          _couponDiscount = discount;
+          _isCouponApplied = true;
+          _couponError = null;
+          final double finalFare = baseFare - discount;
+          _estimatedFare = finalFare.round().toString();
+          _isLoadingFare = false;
+        });
+      } else {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _couponError = data['message'] ?? 'Invalid coupon code';
+          _appliedCoupon = null;
+          _couponDiscount = 0.0;
+          _isCouponApplied = false;
+          _estimatedFare = _originalFare;
+          _isLoadingFare = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _couponError = 'Connection error: $e';
+        _appliedCoupon = null;
+        _couponDiscount = 0.0;
+        _isCouponApplied = false;
+        _estimatedFare = _originalFare;
+        _isLoadingFare = false;
+      });
+    }
+  }
+
+  void _clearCoupon() {
+    setState(() {
+      _appliedCoupon = null;
+      _couponDiscount = 0.0;
+      _isCouponApplied = false;
+      _couponError = null;
+      _couponController.clear();
+      _estimatedFare = _originalFare;
+    });
   }
 
   Future<void> _fetchFareEstimate() async {
@@ -67,8 +161,12 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
         if (mounted) {
           setState(() {
             _estimatedFare = data['estimated_fare'].toString();
+            _originalFare = data['estimated_fare'].toString();
             _distanceKm = data['distance_km'].toString();
             _isLoadingFare = false;
+            if (_isCouponApplied && _couponController.text.isNotEmpty) {
+              _applyCouponCode(_couponController.text);
+            }
           });
         }
       } else {
@@ -476,7 +574,7 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
     });
 
     try {
-      final body = {
+      final body = <String, dynamic>{
         'pickup': {
           'lat': widget.pickup['lat'],
           'lng': widget.pickup['lng'],
@@ -495,6 +593,7 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
         'uid': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
         'paymentMethod': paymentMethod,
         'isPrepaid': isPrepaid,
+        if (_appliedCoupon != null) 'couponCode': _appliedCoupon,
       };
 
       if (razorpayPaymentId != null) body['razorpay_payment_id'] = razorpayPaymentId;
@@ -871,6 +970,81 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
                         ],
                       ),
                     ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Coupon Code Section
+                const Text('APPLY COUPON',
+                    style: TextStyle(
+                        color: AppTheme.primaryFixed,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                GlassCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.local_offer, color: AppTheme.primaryContainer, size: 22),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _couponController,
+                              style: const TextStyle(color: AppTheme.onSurface, fontSize: 14, fontWeight: FontWeight.bold),
+                              decoration: InputDecoration(
+                                hintText: 'Enter coupon code',
+                                hintStyle: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14),
+                                border: InputBorder.none,
+                                isDense: true,
+                                errorText: _couponError,
+                                errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
+                              ),
+                              enabled: !_isCouponApplied,
+                            ),
+                          ),
+                          _isCouponApplied
+                              ? TextButton(
+                                  onPressed: _clearCoupon,
+                                  child: const Text('REMOVE', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                                )
+                              : TextButton(
+                                  onPressed: () {
+                                    if (_couponController.text.isNotEmpty) {
+                                      _applyCouponCode(_couponController.text);
+                                    }
+                                  },
+                                  child: const Text('APPLY', style: TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
+                                ),
+                        ],
+                      ),
+                      if (_isCouponApplied) ...[
+                        const Divider(color: AppTheme.outline),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Coupon "$_appliedCoupon" Applied!',
+                              style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                            Text(
+                              '- ₹${_couponDiscount.round()}',
+                              style: const TextStyle(color: Colors.green, fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Apply coupon code to get discount benefits.',
+                        style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 10, fontStyle: FontStyle.italic),
+                      ),
+                    ],
                   ),
                 ),
 

@@ -18,5 +18,6 @@ router.post('/settings/slot-capacity', adminController.updateSlotCapacity);
 router.get('/settings/slot-capacity', adminController.getSlotCapacity);
 router.get('/feedback', adminController.getFeedback);
 router.post('/send-promo', adminController.sendPromo);
+router.post('/coupon/create', adminController.createCoupon);
 
 module.exports = router;

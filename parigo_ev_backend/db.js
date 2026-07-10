@@ -92,6 +92,18 @@ const initDb = async () => {
     );
   `;
 
+  const createCouponsTable = `
+    CREATE TABLE IF NOT EXISTS coupons (
+      id SERIAL PRIMARY KEY,
+      code VARCHAR(50) UNIQUE NOT NULL,
+      discount_type VARCHAR(20) NOT NULL,
+      discount_value DECIMAL(10, 2) NOT NULL,
+      target_type VARCHAR(20) NOT NULL,
+      target_phone VARCHAR(50),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   try {
     await pool.query(createUsersTable);
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS pin VARCHAR(10);');
@@ -125,6 +137,7 @@ const initDb = async () => {
     await pool.query('ALTER TABLE rides_history ADD COLUMN IF NOT EXISTS driver_late_penalty DECIMAL(10, 2) DEFAULT 0.0;');
 
     await pool.query(createWalletsTable);
+    await pool.query(createCouponsTable);
 
     console.log('PostgreSQL Tables initialized.');
   } catch (error) {

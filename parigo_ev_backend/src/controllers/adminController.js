@@ -418,6 +418,67 @@ const sendPromo = async (req, res) => {
   }
 };
 
+const createCoupon = async (req, res) => {
+  const { code, discountType, discountValue, targetType, targetPhone } = req.body;
+  if (!code || !discountType || !discountValue || !targetType) {
+    return res.status(400).json({ error: 'Missing required coupon fields' });
+  }
+
+  const upperCode = code.trim().toUpperCase();
+
+  try {
+    // Check if coupon code already exists
+    const existing = await db.query('SELECT id FROM coupons WHERE code = $1', [upperCode]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'Coupon code already exists' });
+    }
+
+    let phone = null;
+    let targetUid = null;
+
+    if (targetType === 'INDIVIDUAL') {
+      if (!targetPhone) {
+        return res.status(400).json({ error: 'Target phone number is required for INDIVIDUAL target type' });
+      }
+      phone = targetPhone.trim();
+      // Look up target customer by phone
+      const userResult = await db.query('SELECT uid FROM users WHERE phone = $1 AND role = $2', [phone, 'customer']);
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: `Customer with phone number ${phone} not found` });
+      }
+      targetUid = userResult.rows[0].uid;
+    }
+
+    // Insert into coupons table
+    await db.query(`
+      INSERT INTO coupons (code, discount_type, discount_value, target_type, target_phone)
+      VALUES ($1, $2, $3, $4, $5)
+    `, [upperCode, discountType, discountValue, targetType, phone]);
+
+    // Send notifications
+    const promoTitle = 'New Coupon Available! 🎉';
+    const discountStr = discountType === 'PERCENTAGE' ? `${discountValue}%` : `₹${discountValue}`;
+    const promoMessage = `Use coupon code "${upperCode}" to get a ${discountStr} discount on your next scheduled ride!`;
+
+    if (targetType === 'INDIVIDUAL' && targetUid) {
+      await db.query(
+        'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
+        [targetUid, promoTitle, promoMessage, 'promo']
+      );
+    } else if (targetType === 'ALL') {
+      await db.query(`
+        INSERT INTO notifications (uid, title, message, type)
+        SELECT uid, $1, $2, $3 FROM users WHERE role = 'customer'
+      `, [promoTitle, promoMessage, 'promo']);
+    }
+
+    res.status(200).json({ success: true, message: 'Coupon created and notifications sent successfully' });
+  } catch (error) {
+    console.error('Error creating coupon:', error);
+    res.status(500).json({ error: 'Failed to create coupon' });
+  }
+};
+
 module.exports = {
   reportCrash,
   getPendingRides,
@@ -434,5 +495,6 @@ module.exports = {
   updateSlotCapacity,
   getSlotCapacity,
   getFeedback,
-  sendPromo
+  sendPromo,
+  createCoupon
 };
