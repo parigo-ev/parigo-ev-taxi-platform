@@ -38,7 +38,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (phone.isEmpty) return;
 
     try {
-      final url = role == 'Admin'
+      final url = role.toLowerCase() == 'admin'
           ? '${ApiConstants.baseUrl}/admin/notifications'
           : '${ApiConstants.baseUrl}/user/notifications/$phone';
           
@@ -77,7 +77,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _handleNotificationTap(Map<String, dynamic> notification) async {
-    if (UserSession().role == 'Admin') return;
+    if (UserSession().role.toLowerCase() == 'admin') return;
     
     // 1. Mark as read visually and on backend
     if (notification['is_read'] != true) {
@@ -203,10 +203,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(role == 'Admin' ? 'Sent Notifications' : 'Notifications', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+        title: Text(role.toLowerCase() == 'admin' ? 'Sent Notifications' : 'Notifications', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
-      floatingActionButton: role == 'Admin'
+      floatingActionButton: role.toLowerCase() == 'admin'
           ? FloatingActionButton.extended(
               onPressed: _openSendNotificationSheet,
               backgroundColor: AppTheme.primaryContainer,
@@ -242,7 +242,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: GestureDetector(
-                          onTap: role == 'Admin' ? null : () => _handleNotificationTap(n),
+                          onTap: role.toLowerCase() == 'admin' ? null : () => _handleNotificationTap(n),
                           child: GlassCard(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -252,14 +252,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: (isRead || role == 'Admin')
+                                      color: (isRead || role.toLowerCase() == 'admin')
                                           ? AppTheme.surfaceContainerHighest
                                           : AppTheme.primaryContainer.withOpacity(0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       _getIconForType(n['type'] ?? ''),
-                                      color: (isRead || role == 'Admin') ? AppTheme.onSurfaceVariant : AppTheme.primaryContainer,
+                                      color: (isRead || role.toLowerCase() == 'admin') ? AppTheme.onSurfaceVariant : AppTheme.primaryContainer,
                                       size: 24
                                     ),
                                   ),
@@ -276,7 +276,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                 n['title'] ?? 'Notification',
                                                 style: TextStyle(
                                                     color: AppTheme.onSurface,
-                                                    fontWeight: (isRead || role == 'Admin') ? FontWeight.normal : FontWeight.bold,
+                                                    fontWeight: (isRead || role.toLowerCase() == 'admin') ? FontWeight.normal : FontWeight.bold,
                                                     fontSize: 16),
                                               ),
                                             ),
@@ -291,7 +291,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                           n['message'] ?? '',
                                           style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14),
                                         ),
-                                        if (role == 'Admin') ...[
+                                        if (role.toLowerCase() == 'admin') ...[
                                           const SizedBox(height: 8),
                                           Text(
                                             recipient,

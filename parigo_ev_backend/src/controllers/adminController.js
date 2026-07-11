@@ -1,6 +1,19 @@
 const admin = require('firebase-admin');
 const db = require('../../db');
 
+function normalizePhone(phone) {
+  if (!phone) return phone;
+  let normalized = phone.toString().trim();
+  if (!normalized.startsWith('+')) {
+    if (normalized.length === 10) {
+      normalized = '+91' + normalized;
+    } else {
+      normalized = '+' + normalized;
+    }
+  }
+  return normalized;
+}
+
 const reportCrash = async (req, res) => {
   try {
     const { role, phone, errorMessage, stackTrace } = req.body;
@@ -440,7 +453,7 @@ const createCoupon = async (req, res) => {
       if (!targetPhone) {
         return res.status(400).json({ error: 'Target phone number is required for INDIVIDUAL target type' });
       }
-      phone = targetPhone.trim();
+      phone = normalizePhone(targetPhone);
       // Look up target customer by phone
       const userResult = await db.query('SELECT uid FROM users WHERE phone = $1 AND role = $2', [phone, 'customer']);
       if (userResult.rows.length === 0) {
@@ -514,10 +527,11 @@ const sendAdminNotification = async (req, res) => {
       if (!targetPhone) {
         return res.status(400).json({ error: 'Target phone number is required' });
       }
+      const searchPhone = normalizePhone(targetPhone);
       // Look up user by phone
-      const userResult = await db.query('SELECT uid FROM users WHERE phone = $1 AND role = $2', [targetPhone.trim(), 'customer']);
+      const userResult = await db.query('SELECT uid FROM users WHERE phone = $1 AND role = $2', [searchPhone, 'customer']);
       if (userResult.rows.length === 0) {
-        return res.status(404).json({ error: `Customer with phone number ${targetPhone} not found` });
+        return res.status(404).json({ error: `Customer with phone number ${searchPhone} not found` });
       }
       const targetUid = userResult.rows[0].uid;
       
