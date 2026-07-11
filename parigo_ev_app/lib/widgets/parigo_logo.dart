@@ -13,7 +13,7 @@ class ParigoLogo extends StatelessWidget {
     // Scale logo height relative to the requested font size
     return Image.asset(
       'assets/images/logo.png',
-      height: fontSize * 0.9,
+      height: fontSize * 1.2,
       fit: BoxFit.contain,
     );
   }
