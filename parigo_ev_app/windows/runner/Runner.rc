@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.parigoev" "\0"
-            VALUE "FileDescription", "parigo_ev_app" "\0"
+            VALUE "FileDescription", "Parigo EV" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "parigo_ev_app" "\0"
+            VALUE "InternalName", "Parigo EV" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.parigoev. All rights reserved." "\0"
             VALUE "OriginalFilename", "parigo_ev_app.exe" "\0"
-            VALUE "ProductName", "parigo_ev_app" "\0"
+            VALUE "ProductName", "Parigo EV" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
