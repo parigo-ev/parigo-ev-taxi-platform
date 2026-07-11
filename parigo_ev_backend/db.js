@@ -92,6 +92,20 @@ const initDb = async () => {
     );
   `;
 
+  const createWalletTransactionsTable = `
+    CREATE TABLE IF NOT EXISTS wallet_transactions (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      type VARCHAR(50) NOT NULL,
+      amount DECIMAL(10, 2) NOT NULL,
+      balance_after DECIMAL(10, 2) NOT NULL,
+      reference_type VARCHAR(100),
+      reference_id VARCHAR(255),
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   const createCouponsTable = `
     CREATE TABLE IF NOT EXISTS coupons (
       id SERIAL PRIMARY KEY,
@@ -139,6 +153,7 @@ const initDb = async () => {
     await pool.query('ALTER TABLE rides_history ADD COLUMN IF NOT EXISTS driver_late_penalty DECIMAL(10, 2) DEFAULT 0.0;');
 
     await pool.query(createWalletsTable);
+    await pool.query(createWalletTransactionsTable);
     await pool.query(createCouponsTable);
     await pool.query('ALTER TABLE coupons ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;');
     await pool.query('ALTER TABLE coupons ADD COLUMN IF NOT EXISTS validity_date TIMESTAMP;');

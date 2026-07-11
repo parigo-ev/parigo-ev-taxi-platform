@@ -50,6 +50,9 @@ class _WalletScreenState extends State<WalletScreen> {
       final balanceRes = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/wallet/balance/$_phoneNumber'));
       final transRes = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/wallet/transactions/$_phoneNumber'));
       
+      print('WalletScreen: fetchWalletData - balanceRes code=${balanceRes.statusCode}, body=${balanceRes.body}');
+      print('WalletScreen: fetchWalletData - transRes code=${transRes.statusCode}, body=${transRes.body}');
+      
       if (balanceRes.statusCode == 200 && transRes.statusCode == 200) {
         setState(() {
           _balance = jsonDecode(balanceRes.body)['balance'].toDouble();
@@ -75,10 +78,14 @@ class _WalletScreenState extends State<WalletScreen> {
         'razorpay_signature': response.signature,
       });
 
+      print('WalletScreen: _handlePaymentSuccess payload=$body');
+
       final res = await ApiClient.post(
         Uri.parse('${ApiConstants.baseUrl}/wallet/verify-payment'),
         body: body,
       );
+
+      print('WalletScreen: verify-payment response code=${res.statusCode}, body=${res.body}');
 
       if (res.statusCode == 200) {
         if (mounted) {
@@ -90,14 +97,15 @@ class _WalletScreenState extends State<WalletScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment verification failed.')),
+            SnackBar(content: Text('Payment verification failed: Code ${res.statusCode}. ${res.body}')),
           );
         }
       }
     } catch (e) {
+      print('WalletScreen: Exception during payment verification: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error verifying payment.')),
+          SnackBar(content: Text('Error verifying payment: $e')),
         );
       }
     }
@@ -324,11 +332,15 @@ class _WalletScreenState extends State<WalletScreen> {
                     'amount': amount,
                   });
 
+                  print('WalletScreen: phonepeVerify payload=$body');
+
                   final res = await ApiClient.post(
                     Uri.parse('${ApiConstants.baseUrl}/wallet/phonepe/verify'),
                     body: body,
                   );
                   
+                  print('WalletScreen: phonepeVerify response code=${res.statusCode}, body=${res.body}');
+
                   if (mounted) Navigator.pop(context); // hide loading
 
                   if (res.statusCode == 200) {
@@ -338,13 +350,14 @@ class _WalletScreenState extends State<WalletScreen> {
                     _fetchWalletData();
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Payment not successful or pending.')),
+                      SnackBar(content: Text('Payment not successful: Code ${res.statusCode}. ${res.body}')),
                     );
                   }
                 } catch (e) {
+                  print('WalletScreen: PhonePe verify exception: $e');
                   if (mounted) Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Error verifying payment.')),
+                    SnackBar(content: Text('Error verifying payment: $e')),
                   );
                 }
               },
