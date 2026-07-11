@@ -5,7 +5,6 @@ import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
-import 'payment_methods_screen.dart';
 import 'notifications_screen.dart';
 import 'support_screen.dart';
 import 'about_parigo_ev_screen.dart';
@@ -135,10 +134,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: AppTheme.surfaceContainerHighest, height: 1),
                       _buildProfileOption(context, Icons.history,
                           'Trip History', const TripHistoryScreen(role: 'Customer')),
-                      const Divider(
-                          color: AppTheme.surfaceContainerHighest, height: 1),
-                      _buildProfileOption(context, Icons.payment,
-                          'Payment Methods', const PaymentMethodsScreen()),
                       const Divider(
                           color: AppTheme.surfaceContainerHighest, height: 1),
                       _buildProfileOption(context, Icons.notifications_outlined,
