@@ -11,6 +11,7 @@ import '../core/user_session.dart';
 import 'customer_main_screen.dart';
 import 'wallet_screen.dart';
 import 'feedback_screen.dart';
+import '../widgets/send_notification_sheet.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
 
 
@@ -32,11 +33,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _fetchNotifications() async {
+    final role = UserSession().role;
     final phone = UserSession().phone;
     if (phone.isEmpty) return;
 
     try {
-      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/user/notifications/$phone'));
+      final url = role == 'Admin'
+          ? '${ApiConstants.baseUrl}/admin/notifications'
+          : '${ApiConstants.baseUrl}/user/notifications/$phone';
+          
+      final response = await ApiClient.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -71,6 +77,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _handleNotificationTap(Map<String, dynamic> notification) async {
+    if (UserSession().role == 'Admin') return;
+    
     // 1. Mark as read visually and on backend
     if (notification['is_read'] != true) {
       setState(() {
@@ -175,16 +183,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  void _openSendNotificationSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SendNotificationSheet(
+        onNotificationSent: _fetchNotifications,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final role = UserSession().role;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Notifications', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+        title: Text(role == 'Admin' ? 'Sent Notifications' : 'Notifications', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
+      floatingActionButton: role == 'Admin'
+          ? FloatingActionButton.extended(
+              onPressed: _openSendNotificationSheet,
+              backgroundColor: AppTheme.primaryContainer,
+              icon: const Icon(Icons.send, color: Colors.white),
+              label: const Text('Send Notification', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            )
+          : null,
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryContainer))
@@ -206,10 +235,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       final DateTime createdAt = DateTime.parse(n['created_at']);
                       final String timeStr = timeago.format(createdAt);
 
+                      final String recipient = n['customer_phone'] != null 
+                          ? 'To: ${n['customer_name'] ?? n['customer_phone']}' 
+                          : 'To: All Customers';
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: GestureDetector(
-                          onTap: () => _handleNotificationTap(n),
+                          onTap: role == 'Admin' ? null : () => _handleNotificationTap(n),
                           child: GlassCard(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -219,14 +252,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: isRead
+                                      color: (isRead || role == 'Admin')
                                           ? AppTheme.surfaceContainerHighest
                                           : AppTheme.primaryContainer.withOpacity(0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       _getIconForType(n['type'] ?? ''),
-                                      color: isRead ? AppTheme.onSurfaceVariant : AppTheme.primaryContainer,
+                                      color: (isRead || role == 'Admin') ? AppTheme.onSurfaceVariant : AppTheme.primaryContainer,
                                       size: 24
                                     ),
                                   ),
@@ -243,7 +276,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                 n['title'] ?? 'Notification',
                                                 style: TextStyle(
                                                     color: AppTheme.onSurface,
-                                                    fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                                                    fontWeight: (isRead || role == 'Admin') ? FontWeight.normal : FontWeight.bold,
                                                     fontSize: 16),
                                               ),
                                             ),
@@ -258,6 +291,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                           n['message'] ?? '',
                                           style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14),
                                         ),
+                                        if (role == 'Admin') ...[
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            recipient,
+                                            style: const TextStyle(color: AppTheme.primaryContainer, fontSize: 12, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ),

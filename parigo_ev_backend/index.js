@@ -67,6 +67,7 @@ const adminRoutes = require('./src/routes/adminRoutes');
 const rideRoutes = require('./src/routes/rideRoutes');
 const walletRoutes = require('./src/routes/walletRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
+const customerRoutes = require('./src/routes/customerRoutes');
 const { verifyToken } = require('./src/middleware/authMiddleware');
 
 app.use('/api/auth', authRoutes); // Public endpoints
@@ -76,6 +77,7 @@ app.post('/api/webhook/razorpay', walletController.razorpayWebhook);
 
 app.use('/api/user/notifications', verifyToken, notificationRoutes); 
 app.use('/api/user', verifyToken, userRoutes);
+app.use('/api/customer', verifyToken, customerRoutes);
 app.use('/api/driver', verifyToken, driverRoutes);
 app.use('/api/admin', verifyToken, adminRoutes);
 app.use('/api/ride', verifyToken, rideRoutes);

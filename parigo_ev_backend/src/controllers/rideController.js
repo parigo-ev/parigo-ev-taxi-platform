@@ -529,6 +529,16 @@ const validateCoupon = async (req, res) => {
 
     const coupon = couponResult.rows[0];
 
+    // Check if coupon is active
+    if (coupon.is_active === false) {
+      return res.status(403).json({ success: false, message: 'This coupon code is deactivated' });
+    }
+
+    // Check if coupon validity date has passed
+    if (coupon.validity_date && new Date(coupon.validity_date) < new Date()) {
+      return res.status(403).json({ success: false, message: 'This coupon has expired' });
+    }
+
     // If coupon is targeted at individual phone, check if it matches the current user's phone number
     if (coupon.target_type === 'INDIVIDUAL') {
       if (!phone) {

@@ -19,5 +19,9 @@ router.get('/settings/slot-capacity', adminController.getSlotCapacity);
 router.get('/feedback', adminController.getFeedback);
 router.post('/send-promo', adminController.sendPromo);
 router.post('/coupon/create', adminController.createCoupon);
+router.get('/coupons', adminController.getCoupons);
+router.post('/coupons/toggle-status', adminController.toggleCouponStatus);
+router.get('/notifications', adminController.getSentNotifications);
+router.post('/notifications/send', adminController.sendAdminNotification);
 
 module.exports = router;

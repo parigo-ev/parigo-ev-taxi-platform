@@ -419,7 +419,7 @@ const sendPromo = async (req, res) => {
 };
 
 const createCoupon = async (req, res) => {
-  const { code, discountType, discountValue, targetType, targetPhone } = req.body;
+  const { code, discountType, discountValue, targetType, targetPhone, validityDate } = req.body;
   if (!code || !discountType || !discountValue || !targetType) {
     return res.status(400).json({ error: 'Missing required coupon fields' });
   }
@@ -451,9 +451,9 @@ const createCoupon = async (req, res) => {
 
     // Insert into coupons table
     await db.query(`
-      INSERT INTO coupons (code, discount_type, discount_value, target_type, target_phone)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [upperCode, discountType, discountValue, targetType, phone]);
+      INSERT INTO coupons (code, discount_type, discount_value, target_type, target_phone, validity_date, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, true)
+    `, [upperCode, discountType, discountValue, targetType, phone, validityDate ? new Date(validityDate) : null]);
 
     // Send notifications
     const promoTitle = 'New Coupon Available! 🎉';
@@ -479,6 +479,82 @@ const createCoupon = async (req, res) => {
   }
 };
 
+const getCoupons = async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM coupons ORDER BY created_at DESC');
+    res.status(200).json({ success: true, coupons: result.rows });
+  } catch (error) {
+    console.error('Error fetching coupons:', error);
+    res.status(500).json({ error: 'Failed to fetch coupons' });
+  }
+};
+
+const toggleCouponStatus = async (req, res) => {
+  const { couponId, isActive } = req.body;
+  if (couponId === undefined || isActive === undefined) {
+    return res.status(400).json({ error: 'couponId and isActive are required' });
+  }
+  try {
+    await db.query('UPDATE coupons SET is_active = $1 WHERE id = $2', [isActive, couponId]);
+    res.status(200).json({ success: true, message: `Coupon status updated to ${isActive ? 'active' : 'inactive'}` });
+  } catch (error) {
+    console.error('Error toggling coupon status:', error);
+    res.status(500).json({ error: 'Failed to update coupon status' });
+  }
+};
+
+const sendAdminNotification = async (req, res) => {
+  const { title, message, targetType, targetPhone } = req.body;
+  if (!title || !message || !targetType) {
+    return res.status(400).json({ error: 'Title, message, and targetType are required' });
+  }
+
+  try {
+    if (targetType === 'INDIVIDUAL') {
+      if (!targetPhone) {
+        return res.status(400).json({ error: 'Target phone number is required' });
+      }
+      // Look up user by phone
+      const userResult = await db.query('SELECT uid FROM users WHERE phone = $1 AND role = $2', [targetPhone.trim(), 'customer']);
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: `Customer with phone number ${targetPhone} not found` });
+      }
+      const targetUid = userResult.rows[0].uid;
+      
+      await db.query(
+        'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
+        [targetUid, title, message, 'promo']
+      );
+    } else {
+      // Send to all customers
+      await db.query(`
+        INSERT INTO notifications (uid, title, message, type)
+        SELECT uid, $1, $2, 'promo' FROM users WHERE role = 'customer'
+      `, [title, message]);
+    }
+    res.status(200).json({ success: true, message: 'Notification sent successfully' });
+  } catch (error) {
+    console.error('Error sending admin notification:', error);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
+};
+
+const getSentNotifications = async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT n.*, u.phone as customer_phone, u.name as customer_name 
+      FROM notifications n
+      LEFT JOIN users u ON n.uid = u.uid
+      ORDER BY n.created_at DESC
+      LIMIT 100
+    `);
+    res.status(200).json({ success: true, notifications: result.rows });
+  } catch (error) {
+    console.error('Error fetching sent notifications:', error);
+    res.status(500).json({ error: 'Failed to fetch sent notifications' });
+  }
+};
+
 module.exports = {
   reportCrash,
   getPendingRides,
@@ -496,5 +572,9 @@ module.exports = {
   getSlotCapacity,
   getFeedback,
   sendPromo,
-  createCoupon
+  createCoupon,
+  getCoupons,
+  toggleCouponStatus,
+  sendAdminNotification,
+  getSentNotifications
 };

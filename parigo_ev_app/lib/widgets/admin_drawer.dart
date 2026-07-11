@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import '../screens/admin_dashboard_screen.dart';
 import '../screens/notifications_screen.dart';
+import '../screens/admin_coupons_screen.dart';
 import '../core/user_session.dart';
 import '../screens/login_screen.dart';
 import 'package:http/http.dart' as http;
@@ -169,6 +170,18 @@ class _AdminDrawerState extends State<AdminDrawer> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                        );
+                      },
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.local_offer,
+                      title: 'Coupons',
+                      onTap: () {
+                        Navigator.pop(context); // close drawer
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminCouponsScreen()),
                         );
                       },
                     ),

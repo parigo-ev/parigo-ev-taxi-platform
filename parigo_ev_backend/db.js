@@ -100,6 +100,8 @@ const initDb = async () => {
       discount_value DECIMAL(10, 2) NOT NULL,
       target_type VARCHAR(20) NOT NULL,
       target_phone VARCHAR(50),
+      is_active BOOLEAN DEFAULT true,
+      validity_date TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -138,6 +140,8 @@ const initDb = async () => {
 
     await pool.query(createWalletsTable);
     await pool.query(createCouponsTable);
+    await pool.query('ALTER TABLE coupons ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;');
+    await pool.query('ALTER TABLE coupons ADD COLUMN IF NOT EXISTS validity_date TIMESTAMP;');
 
     console.log('PostgreSQL Tables initialized.');
   } catch (error) {

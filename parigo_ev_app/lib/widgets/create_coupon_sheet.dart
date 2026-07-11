@@ -25,6 +25,7 @@ class _CreateCouponSheetState extends State<CreateCouponSheet> {
   String _discountType = 'PERCENTAGE'; // 'PERCENTAGE' or 'FLAT'
   String _targetType = 'ALL'; // 'ALL' or 'INDIVIDUAL'
   bool _isLoading = false;
+  DateTime? _validityDate;
 
   @override
   void dispose() {
@@ -49,6 +50,7 @@ class _CreateCouponSheetState extends State<CreateCouponSheet> {
           'discountValue': double.tryParse(_discountValueController.text.trim()) ?? 0.0,
           'targetType': _targetType,
           'targetPhone': _targetType == 'INDIVIDUAL' ? _targetPhoneController.text.trim() : null,
+          'validityDate': _validityDate?.toIso8601String(),
         }),
       );
 
@@ -74,6 +76,71 @@ class _CreateCouponSheetState extends State<CreateCouponSheet> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _selectValidityDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _validityDate ?? DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppTheme.primaryContainer,
+              onPrimary: Colors.white,
+              surface: AppTheme.surfaceContainerHigh,
+              onSurface: AppTheme.onSurface,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _validityDate = picked;
+      });
+    }
+  }
+
+  Widget _buildValidityDatePicker() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('COUPON VALIDITY DATE (OPTIONAL)', style: TextStyle(color: AppTheme.primaryContainer, fontSize: 11, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          InkWell(
+            onTap: _selectValidityDate,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceContainerHighest.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _validityDate == null 
+                        ? 'Select validity/expiry date' 
+                        : '${_validityDate!.day}/${_validityDate!.month}/${_validityDate!.year}',
+                    style: TextStyle(
+                      color: _validityDate == null ? AppTheme.onSurfaceVariant : AppTheme.onSurface,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Icon(Icons.calendar_today, color: AppTheme.primaryContainer, size: 20),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildDiscountTypeToggle() {
@@ -268,7 +335,7 @@ class _CreateCouponSheetState extends State<CreateCouponSheet> {
                       _buildTargetTypeToggle(),
                       if (_targetType == 'INDIVIDUAL')
                         _buildTextField('Customer Mobile Number', _targetPhoneController, hintText: 'e.g. +919876543210'),
-                      
+                      _buildValidityDatePicker(),
                       const SizedBox(height: 16),
                       _isLoading
                           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
