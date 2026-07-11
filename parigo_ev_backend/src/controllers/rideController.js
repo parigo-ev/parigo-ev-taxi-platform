@@ -249,11 +249,20 @@ const scheduleRide = async (req, res) => {
         }
 
         // Deduct and insert transaction
-        await db.query('UPDATE wallets SET balance = balance - $1 WHERE uid = $2', [walletFare, uid]);
-        await db.query(
-          "INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'DEBIT', $3)",
-          [uid, walletFare, `Pre-paid for scheduled ride`]
+        const updatedWalletRes = await db.query(
+          'UPDATE wallets SET balance = balance - $1 WHERE uid = $2 RETURNING balance',
+          [walletFare, uid]
         );
+        const balanceAfter = updatedWalletRes.rows.length > 0 ? parseFloat(updatedWalletRes.rows[0].balance) : 0.0;
+
+        const userRes = await db.query('SELECT id FROM users WHERE uid = $1', [uid]);
+        if (userRes.rows.length > 0) {
+          const userId = userRes.rows[0].id;
+          await db.query(
+            "INSERT INTO wallet_transactions (user_id, amount, type, balance_after, description) VALUES ($1, $2, 'DEBIT', $3, $4)",
+            [userId, walletFare, 'DEBIT', balanceAfter, `Pre-paid for scheduled ride`]
+          );
+        }
       } else if (paymentMethod === 'RAZORPAY') {
         if (razorpay_payment_id && razorpay_signature && razorpay_order_id) {
           const crypto = require('crypto');
@@ -377,15 +386,20 @@ const payRide = async (req, res) => {
         return res.status(400).json({ error: 'Insufficient wallet balance' });
       }
 
-      await db.query(
-        'UPDATE wallets SET balance = balance - $1 WHERE uid = $2',
+      const updatedWalletRes = await db.query(
+        'UPDATE wallets SET balance = balance - $1 WHERE uid = $2 RETURNING balance',
         [fare, uid]
       );
+      const balanceAfter = updatedWalletRes.rows.length > 0 ? parseFloat(updatedWalletRes.rows[0].balance) : 0.0;
 
-      await db.query(
-        "INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'DEBIT', $3)",
-        [uid, fare, `Paid for Ride ID: ${rideId}`]
-      );
+      const userRes = await db.query('SELECT id FROM users WHERE uid = $1', [uid]);
+      if (userRes.rows.length > 0) {
+        const userId = userRes.rows[0].id;
+        await db.query(
+          "INSERT INTO wallet_transactions (user_id, amount, type, balance_after, description) VALUES ($1, $2, 'DEBIT', $3, $4)",
+          [userId, fare, 'DEBIT', balanceAfter, `Paid for Ride ID: ${rideId}`]
+        );
+      }
     }
 
     // 2. Update ride status in Firestore to COMPLETED

@@ -7,10 +7,24 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+function normalizePhone(phone) {
+  if (!phone) return phone;
+  let normalized = phone.toString().trim();
+  if (!normalized.startsWith('+')) {
+    if (normalized.length === 10) {
+      normalized = '+91' + normalized;
+    } else {
+      normalized = '+' + normalized;
+    }
+  }
+  return normalized;
+}
+
 const getBalance = async (req, res) => {
   const { phone } = req.params;
   try {
-    const result = await db.query('SELECT uid FROM users WHERE phone = $1', [phone]);
+    const normalizedPhone = normalizePhone(phone);
+    const result = await db.query('SELECT uid FROM users WHERE phone = $1', [normalizedPhone]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     
     const uid = result.rows[0].uid;
@@ -26,11 +40,16 @@ const getBalance = async (req, res) => {
 const getTransactions = async (req, res) => {
   const { phone } = req.params;
   try {
-    const result = await db.query('SELECT uid FROM users WHERE phone = $1', [phone]);
+    const normalizedPhone = normalizePhone(phone);
+    const result = await db.query('SELECT id FROM users WHERE phone = $1', [normalizedPhone]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     
-    const uid = result.rows[0].uid;
-    const transRes = await db.query('SELECT * FROM wallet_transactions WHERE uid = $1 ORDER BY created_at DESC', [uid]);
+    const userId = result.rows[0].id;
+    const transRes = await db.query(
+      `SELECT id, user_id, UPPER(type) as type, amount, balance_after, reference_type, reference_id, description, created_at 
+       FROM wallet_transactions WHERE user_id = $1 ORDER BY created_at DESC`, 
+      [userId]
+    );
     res.status(200).json({ success: true, transactions: transRes.rows });
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -39,30 +58,34 @@ const getTransactions = async (req, res) => {
 };
 
 const addFunds = async (req, res) => {
-  const { phone, amount, paymentMethod } = req.body;
+  const { phone, amount } = req.body;
+  const paymentMethod = req.body.paymentMethod || 'Payment Gateway';
   if (!phone || !amount) return res.status(400).json({ error: 'Phone and amount required' });
 
   try {
-    const result = await db.query('SELECT uid FROM users WHERE phone = $1', [phone]);
+    const normalizedPhone = normalizePhone(phone);
+    const result = await db.query('SELECT id, uid FROM users WHERE phone = $1', [normalizedPhone]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
-    const uid = result.rows[0].uid;
+    const { id: userId, uid } = result.rows[0];
 
-    await db.query(
+    const walletRes = await db.query(
       `INSERT INTO wallets (uid, balance) VALUES ($1, $2) 
-       ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2`,
+       ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2
+       RETURNING balance`,
       [uid, amount]
     );
+    const newBalance = walletRes.rows[0].balance;
 
     await db.query(
-      `INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'CREDIT', $3)`,
-      [uid, amount, `Added via ${paymentMethod || 'Payment Gateway'}`]
+      `INSERT INTO wallet_transactions (user_id, amount, type, balance_after, description) VALUES ($1, $2, 'credit', $3, $4)`,
+      [userId, amount, newBalance, `Added via ${paymentMethod}`]
     );
 
     // Insert wallet topup notification
     try {
       await db.query(
         'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-        [uid, 'Wallet Top-up Successful', `₹${amount} has been added to your Parigo EV wallet.`, 'wallet_topup']
+        [uid, 'Welcome to Parigo EV!', `₹${amount} has been added to your Parigo EV wallet.`, 'wallet_topup']
       );
     } catch (err) {
       console.error('Error inserting wallet topup notification:', err);
@@ -113,19 +136,22 @@ const verifyPayment = async (req, res) => {
     }
 
     // Payment is successful, add funds
-    const result = await db.query('SELECT uid FROM users WHERE phone = $1', [phone]);
+    const normalizedPhone = normalizePhone(phone);
+    const result = await db.query('SELECT id, uid FROM users WHERE phone = $1', [normalizedPhone]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
-    const uid = result.rows[0].uid;
+    const { id: userId, uid } = result.rows[0];
 
-    await db.query(
+    const walletRes = await db.query(
       `INSERT INTO wallets (uid, balance) VALUES ($1, $2) 
-       ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2`,
+       ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2
+       RETURNING balance`,
       [uid, amount]
     );
+    const newBalance = walletRes.rows[0].balance;
 
     await db.query(
-      `INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'CREDIT', $3)`,
-      [uid, amount, 'Added via Razorpay']
+      `INSERT INTO wallet_transactions (user_id, amount, type, balance_after, description) VALUES ($1, $2, 'credit', $3, $4)`,
+      [userId, amount, newBalance, 'Added via Razorpay']
     );
 
     try {
@@ -165,22 +191,25 @@ const razorpayWebhook = async (req, res) => {
       const phone = payment.contact;
       const order_id = payment.order_id;
       
-      const result = await db.query('SELECT uid FROM users WHERE phone = $1', [phone]);
+      const normalizedPhone = normalizePhone(phone);
+      const result = await db.query('SELECT id, uid FROM users WHERE phone = $1', [normalizedPhone]);
       if (result.rows.length > 0) {
-        const uid = result.rows[0].uid;
+        const { id: userId, uid } = result.rows[0];
         
         // Prevent double funding by checking if order ID was already processed
         const checkRes = await db.query('SELECT id FROM wallet_transactions WHERE description LIKE $1', [`%${order_id}%`]);
         if (checkRes.rows.length === 0) {
-          await db.query(
+          const walletRes = await db.query(
             `INSERT INTO wallets (uid, balance) VALUES ($1, $2) 
-             ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2`,
+             ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2
+             RETURNING balance`,
             [uid, amount]
           );
+          const newBalance = walletRes.rows[0].balance;
 
           await db.query(
-            `INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'CREDIT', $3)`,
-            [uid, amount, `Added via Razorpay Webhook Order: ${order_id}`]
+            `INSERT INTO wallet_transactions (user_id, amount, type, balance_after, description) VALUES ($1, $2, 'credit', $3, $4)`,
+            [userId, amount, newBalance, `Added via Razorpay Webhook Order: ${order_id}`]
           );
 
           try {
@@ -287,21 +316,24 @@ const phonepeVerifyPayment = async (req, res) => {
     const responseData = await response.json();
 
     if (responseData.success && responseData.data.state === 'COMPLETED') {
-      const result = await db.query('SELECT uid FROM users WHERE phone = $1', [phone]);
+      const normalizedPhone = normalizePhone(phone);
+      const result = await db.query('SELECT id, uid FROM users WHERE phone = $1', [normalizedPhone]);
       if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
-      const uid = result.rows[0].uid;
+      const { id: userId, uid } = result.rows[0];
 
       const checkRes = await db.query('SELECT id FROM wallet_transactions WHERE description LIKE $1', [`%${merchantTransactionId}%`]);
       if (checkRes.rows.length === 0) {
-        await db.query(
+        const walletRes = await db.query(
           `INSERT INTO wallets (uid, balance) VALUES ($1, $2) 
-           ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2`,
+           ON CONFLICT (uid) DO UPDATE SET balance = wallets.balance + $2
+           RETURNING balance`,
           [uid, amount]
         );
+        const newBalance = walletRes.rows[0].balance;
 
         await db.query(
-          `INSERT INTO wallet_transactions (uid, amount, type, description) VALUES ($1, $2, 'CREDIT', $3)`,
-          [uid, amount, `Added via PhonePe Order: ${merchantTransactionId}`]
+          `INSERT INTO wallet_transactions (user_id, amount, type, balance_after, description) VALUES ($1, $2, 'credit', $3, $4)`,
+          [userId, amount, newBalance, `Added via PhonePe Order: ${merchantTransactionId}`]
         );
 
         try {
@@ -328,7 +360,8 @@ const getBalanceByIdentifier = async (req, res) => {
     let result;
     // Check if identifier is a phone number (e.g. contains only digits and possibly starting with +)
     if (/^\+?[0-9]+$/.test(identifier)) {
-      result = await db.query('SELECT uid FROM users WHERE phone = $1', [identifier]);
+      const normalizedPhone = normalizePhone(identifier);
+      result = await db.query('SELECT uid FROM users WHERE phone = $1', [normalizedPhone]);
     } else {
       result = await db.query('SELECT uid FROM users WHERE uid = $1', [identifier]);
     }
