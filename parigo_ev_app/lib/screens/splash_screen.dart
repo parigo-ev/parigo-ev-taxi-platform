@@ -8,7 +8,6 @@ import 'admin_dashboard_screen.dart';
 import '../core/user_session.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/parigo_logo.dart';
-import '../widgets/parigo_icon_i.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -18,14 +17,10 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
-
-  late AnimationController _zoomController;
-  late Animation<double> _zoomAnimation;
-  late Animation<double> _textFadeOutAnimation;
 
   @override
   void initState() {
@@ -44,25 +39,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
 
-    _zoomController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-
-    _zoomAnimation = Tween<double>(begin: 1.0, end: 60.0).animate(
-      CurvedAnimation(
-        parent: _zoomController,
-        curve: Curves.easeInOutQuart,
-      ),
-    );
-
-    _textFadeOutAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _zoomController,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
-      ),
-    );
-
     _controller.forward();
 
     _initializeApp();
@@ -75,13 +51,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Load local session concurrently
     await UserSession().loadSession();
 
-    // Wait for the minimum splash time to pass
+    // Wait for the minimum splash time to pass before navigating
     await minSplashDuration;
-
-    if (!mounted) return;
-
-    // Run the zoom transition animation before navigating!
-    await _zoomController.forward();
 
     if (!mounted) return;
 
@@ -114,7 +85,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _controller.dispose();
-    _zoomController.dispose();
     super.dispose();
   }
 
@@ -154,118 +124,44 @@ class _SplashScreenState extends State<SplashScreen>
               opacity: _fadeAnimation,
               child: ScaleTransition(
                 scale: _scaleAnimation,
-                child: AnimatedBuilder(
-                  animation: _zoomController,
-                  builder: (context, child) {
-                    final textStyle = Theme.of(context)
-                        .textTheme
-                        .displayLarge
-                        ?.copyWith(
-                          letterSpacing: 4,
-                          color: AppTheme.primary,
-                        );
-                    final style = GoogleFonts.audiowide(textStyle: textStyle);
-                    final fontSize = style.fontSize ?? 48.0;
-                    final iconSize = fontSize;
-                    final iconWidth = iconSize * 1.25;
-                    final spacing = fontSize * 0.12;
-
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Top circle with bolt icon (fades out)
-                        Opacity(
-                          opacity: _textFadeOutAnimation.value,
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppTheme.primary.withOpacity(0.1),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.primary.withOpacity(0.2),
-                                  blurRadius: 30,
-                                  spreadRadius: 10,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(Icons.bolt,
-                                size: 80, color: AppTheme.primary),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppTheme.primary.withOpacity(0.1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.2),
+                            blurRadius: 30,
+                            spreadRadius: 10,
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        // Logo Stack
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Text parts fade out
-                            Opacity(
-                              opacity: _textFadeOutAnimation.value,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'PAR',
-                                    style: style.copyWith(
-                                      foreground: Paint()
-                                        ..shader = const LinearGradient(
-                                          colors: [
-                                            Color(0xFF10B981),
-                                            Color(0xFF059669),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ).createShader(Rect.fromLTWH(0.0, 0.0, fontSize * 6, fontSize)),
-                                    ),
-                                  ),
-                                  SizedBox(width: iconWidth + spacing * 2),
-                                  Text(
-                                    'GO EV',
-                                    style: style.copyWith(
-                                      foreground: Paint()
-                                        ..shader = const LinearGradient(
-                                          colors: [
-                                            Color(0xFF10B981),
-                                            Color(0xFF059669),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ).createShader(Rect.fromLTWH(0.0, 0.0, fontSize * 6, fontSize)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Zooming custom "I" icon
-                            Transform.scale(
-                              scale: _zoomAnimation.value,
-                              child: const ParigoIconI(
-                                size: 48.0,
-                                colors: [
-                                  Color(0xFF10B981), // Emerald Green
-                                  Color(0xFF059669), // Dark Emerald
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Subtitle fades out
-                        Opacity(
-                          opacity: _textFadeOutAnimation.value,
-                          child: Text(
-                            'Electrify your journey.',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: AppTheme.onSurfaceVariant,
-                                  letterSpacing: 2,
-                                ),
+                        ],
+                      ),
+                      child: const Icon(Icons.bolt,
+                          size: 80, color: AppTheme.primary),
+                    ),
+                    const SizedBox(height: 24),
+                    ParigoLogo(
+                      textStyle: Theme.of(context)
+                          .textTheme
+                          .displayLarge
+                          ?.copyWith(
+                            letterSpacing: 4,
                           ),
-                        ),
-                      ],
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Electrify your journey.',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: AppTheme.onSurfaceVariant,
+                            letterSpacing: 2,
+                          ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -275,4 +171,3 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-

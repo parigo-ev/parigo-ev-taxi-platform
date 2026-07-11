@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'parigo_icon_i.dart';
+import '../theme/app_theme.dart';
 
 class ParigoLogo extends StatelessWidget {
   final TextStyle? textStyle;
@@ -15,46 +15,28 @@ class ParigoLogo extends StatelessWidget {
     final gradientStyle = style?.copyWith(
       foreground: Paint()
         ..shader = const LinearGradient(
-          colors: [
-            Color(0xFF10B981), // Emerald Green
-            Color(0xFF059669), // Dark Emerald
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ).createShader(Rect.fromLTWH(0.0, 0.0, fontSize * 6, fontSize)),
+          colors: [AppTheme.primaryContainer, AppTheme.primary],
+        ).createShader(const Rect.fromLTWH(0.0, 0.0, 300.0, 70.0)),
     );
 
-    final double iconSize = fontSize;
-    final double iconWidth = iconSize * 1.25;
-    final double spacing = fontSize * 0.12;
-
-    return Stack(
-      alignment: Alignment.center,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'PAR',
-              style: GoogleFonts.audiowide(textStyle: gradientStyle),
-            ),
-            SizedBox(width: iconWidth + spacing * 2),
-            Text(
-              'GO EV',
-              style: GoogleFonts.audiowide(textStyle: gradientStyle),
-            ),
-          ],
+        Text(
+          'PAR',
+          style: GoogleFonts.audiowide(textStyle: gradientStyle),
         ),
-        ParigoIconI(
-          size: iconSize,
-          colors: const [
-            Color(0xFF10B981), // Emerald Green
-            Color(0xFF059669), // Dark Emerald
-          ],
+        Icon(
+          Icons.bolt,
+          color: AppTheme.primary,
+          size: fontSize * 1.1, // slightly larger to match text height
+        ),
+        Text(
+          'GO EV',
+          style: GoogleFonts.audiowide(textStyle: gradientStyle),
         ),
       ],
     );
   }
 }
-
