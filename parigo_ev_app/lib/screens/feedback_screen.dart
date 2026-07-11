@@ -151,7 +151,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Ride Completed',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         actions: [
           TextButton(
             onPressed: () => _returnToHome(),

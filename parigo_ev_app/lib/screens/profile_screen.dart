@@ -65,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Profile',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
       body: SafeArea(

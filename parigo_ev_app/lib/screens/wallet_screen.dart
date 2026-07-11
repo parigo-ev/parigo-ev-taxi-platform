@@ -363,7 +363,7 @@ class _WalletScreenState extends State<WalletScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Wallet', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+        title: Text('Wallet', style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
       body: _isLoading 

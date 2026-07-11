@@ -203,7 +203,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(role.toLowerCase() == 'admin' ? 'Sent Notifications' : 'Notifications', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+        title: Text(role.toLowerCase() == 'admin' ? 'Sent Notifications' : 'Notifications', style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
       floatingActionButton: role.toLowerCase() == 'admin'

@@ -393,7 +393,7 @@ class _AdminActiveRidesTabState extends State<AdminActiveRidesTab> {
             },
           ),
           title: Text('Rides Management',
-              style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+              style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh, color: AppTheme.onSurface),

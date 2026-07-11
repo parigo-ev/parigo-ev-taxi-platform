@@ -753,7 +753,7 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Schedule Ride',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
       body: SafeArea(

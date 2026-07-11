@@ -14,7 +14,7 @@ class SupportScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Help & Support',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
       body: SafeArea(

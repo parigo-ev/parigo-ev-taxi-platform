@@ -64,7 +64,7 @@ class _AdminFleetTabState extends State<AdminFleetTab> {
           },
         ),
         title: Text('Fleet & Battery',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle, color: AppTheme.primaryContainer),

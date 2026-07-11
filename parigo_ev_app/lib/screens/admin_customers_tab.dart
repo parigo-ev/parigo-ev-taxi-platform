@@ -81,7 +81,7 @@ class _AdminCustomersTabState extends State<AdminCustomersTab> {
           },
         ),
         title: Text('Registered Customers',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.onSurface),

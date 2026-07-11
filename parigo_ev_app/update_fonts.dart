@@ -8,13 +8,16 @@ void main() {
   for (final file in files) {
     if (file.path.endsWith('.dart')) {
       final content = file.readAsStringSync();
-      if (content.contains('GoogleFonts.audiowide')) {
-        final newContent = content.replaceAll('GoogleFonts.audiowide', 'GoogleFonts.inter');
+      if (content.contains('GoogleFonts.nunito(color: AppTheme.primaryContainer)')) {
+        final newContent = content.replaceAll(
+          'GoogleFonts.nunito(color: AppTheme.primaryContainer)',
+          'GoogleFonts.audiowide(color: AppTheme.primaryContainer)',
+        );
         file.writeAsStringSync(newContent);
         updatedFiles++;
-        print('Updated \${file.path}');
+        print('Updated ${file.path}');
       }
     }
   }
-  print('Total updated: \$updatedFiles');
+  print('Total updated: $updatedFiles');
 }

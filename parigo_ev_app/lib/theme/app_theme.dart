@@ -71,6 +71,17 @@ class AppTheme {
         outlineVariant: outlineVariant,
       ),
       scaffoldBackgroundColor: background,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: GoogleFonts.audiowide(
+          color: primaryContainer,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(color: onSurface),
+      ),
       fontFamily: GoogleFonts.nunito().fontFamily,
       textTheme: const TextTheme(
         displayLarge: TextStyle(

@@ -240,7 +240,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         elevation: 0,
         title: Text(
             widget.isRegistration ? 'Complete Registration' : 'Edit Profile',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
       ),
       body: SafeArea(

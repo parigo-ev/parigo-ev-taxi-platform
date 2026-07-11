@@ -335,7 +335,7 @@ class _DriverRideExecutionScreenState extends State<DriverRideExecutionScreen> w
           return AlertDialog(
             backgroundColor: AppTheme.surfaceContainerHigh,
             title: Text('Enter Customer OTP',
-                style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+                style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
             content: TextField(
               controller: otpController,
               keyboardType: TextInputType.number,

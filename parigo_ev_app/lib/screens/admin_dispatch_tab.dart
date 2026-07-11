@@ -312,7 +312,7 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
           },
         ),
         title: Text('Admin Dispatch',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.onSurface),

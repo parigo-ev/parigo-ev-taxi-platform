@@ -283,7 +283,7 @@ class _AdminMapTabState extends State<AdminMapTab> {
           },
         ),
         title: Text('Live Fleet Tracking',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
       ),
       body: Stack(
         children: [

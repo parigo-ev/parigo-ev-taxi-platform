@@ -110,7 +110,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Coupon Management', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+        title: Text('Coupon Management', style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
         actions: [
           IconButton(

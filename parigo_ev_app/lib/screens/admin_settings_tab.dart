@@ -132,7 +132,7 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
           },
         ),
         title: Text('Settings & Analytics',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.onSurface),

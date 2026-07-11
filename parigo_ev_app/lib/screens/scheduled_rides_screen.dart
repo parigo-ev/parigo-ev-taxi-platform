@@ -245,7 +245,7 @@ class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Scheduled Rides',
-            style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+            style: GoogleFonts.audiowide(color: AppTheme.primaryContainer)),
         iconTheme: const IconThemeData(color: AppTheme.onSurface),
         actions: [
           IconButton(
