@@ -159,87 +159,102 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
       otherName = ride['driverDetails']?['name'] ?? 'Parigo EV Driver';
     }
 
+import 'ride_details_screen.dart';
+
+// ... (in _buildTripCard method)
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: GlassCard(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        padding: EdgeInsets.zero,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => RideDetailsScreen(ride: ride, isAdmin: false)),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(dateStr, style: const TextStyle(color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(dateStr, style: const TextStyle(color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isCompleted ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isCompleted ? Colors.green : Colors.red),
+                      ),
+                    )
+                  ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isCompleted ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    status,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: isCompleted ? Colors.green : Colors.red),
-                  ),
-                )
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(Icons.currency_rupee, color: AppTheme.primary, size: 24),
+                    Text(fare, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.onSurface)),
+                  ],
+                ),
+                if (waitPenalty != null && waitPenalty > 0)
+                   Padding(
+                     padding: const EdgeInsets.only(top: 4.0),
+                     child: Text('+ ₹$waitPenalty Wait Time Charge', style: const TextStyle(color: Colors.redAccent, fontSize: 14)),
+                   ),
+                if (latePenalty != null && latePenalty > 0)
+                   Padding(
+                     padding: const EdgeInsets.only(top: 4.0),
+                     child: Text('- ₹$latePenalty Punctuality Guarantee', style: const TextStyle(color: Colors.greenAccent, fontSize: 14)),
+                   ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(Icons.person, color: AppTheme.primaryContainer, size: 16),
+                    const SizedBox(width: 8),
+                    Text(otherName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(color: AppTheme.outline),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.circle, color: Colors.green, size: 12),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(pickup, style: const TextStyle(fontSize: 14))),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(left: 5, top: 4, bottom: 4),
+                  child: SizedBox(
+                      height: 20,
+                      child: VerticalDivider(color: AppTheme.onSurfaceVariant, thickness: 1)),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.red, size: 12),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(dropoff, style: const TextStyle(fontSize: 14))),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.currency_rupee, color: AppTheme.primary, size: 24),
-                Text(fare, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.onSurface)),
-              ],
-            ),
-            if (waitPenalty != null && waitPenalty > 0)
-               Padding(
-                 padding: const EdgeInsets.only(top: 4.0),
-                 child: Text('+ ₹$waitPenalty Wait Time Charge', style: const TextStyle(color: Colors.redAccent, fontSize: 14)),
-               ),
-            if (latePenalty != null && latePenalty > 0)
-               Padding(
-                 padding: const EdgeInsets.only(top: 4.0),
-                 child: Text('- ₹$latePenalty Punctuality Guarantee', style: const TextStyle(color: Colors.greenAccent, fontSize: 14)),
-               ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.person, color: AppTheme.primaryContainer, size: 16),
-                const SizedBox(width: 8),
-                Text(otherName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(color: AppTheme.outline),
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.circle, color: Colors.green, size: 12),
-                const SizedBox(width: 12),
-                Expanded(child: Text(pickup, style: const TextStyle(fontSize: 14))),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.only(left: 5, top: 4, bottom: 4),
-              child: SizedBox(
-                  height: 20,
-                  child: VerticalDivider(color: AppTheme.onSurfaceVariant, thickness: 1)),
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.location_on, color: Colors.red, size: 12),
-                const SizedBox(width: 12),
-                Expanded(child: Text(dropoff, style: const TextStyle(fontSize: 14))),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

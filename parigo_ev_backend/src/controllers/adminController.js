@@ -139,44 +139,59 @@ const getActiveRides = async (req, res) => {
 
 const getCompletedRides = async (req, res) => {
   try {
-    const snapshot = await admin.firestore().collection('rides')
-      .where('status', '==', 'COMPLETED')
-      .get();
-      
-    const rides = [];
-    snapshot.forEach(doc => {
-      rides.push({ id: doc.id, ...doc.data() });
-    });
+    const query = `
+      SELECT r.*, 
+             d.name as driver_name, d.phone as driver_phone, d.vehicle_type, d.profile_picture_url,
+             u.name as customer_name, u.phone as customer_phone
+      FROM rides_history r
+      LEFT JOIN drivers d ON r.driver_uid = d.driver_uid
+      LEFT JOIN users u ON r.customer_uid = u.uid
+      WHERE r.status = 'COMPLETED'
+      ORDER BY r.created_at DESC
+    `;
+    const result = await db.query(query);
 
-    // Populate driver details
-    for (let ride of rides) {
-      if (ride.assignedDriverId) {
-        try {
-           const result = await db.query('SELECT name, vehicle_type, phone, profile_picture_url FROM drivers WHERE driver_uid = $1', [ride.assignedDriverId]);
-           if (result.rows.length > 0) {
-              ride.driverDetails = result.rows[0];
-           }
-        } catch (e) {
-           console.error('Error fetching driver details for history ride:', e);
+    const rides = result.rows.map(row => {
+      // Map postgres row to the JSON format expected by the frontend
+      return {
+        id: row.ride_id,
+        uid: row.customer_uid,
+        assignedDriverId: row.driver_uid,
+        status: row.status,
+        fare: row.fare,
+        pickupLocation: {
+          lat: row.pickup_lat,
+          lng: row.pickup_lng,
+          address: row.pickup_address || 'Unknown Pickup'
+        },
+        dropoffLocation: {
+          lat: row.dropoff_lat,
+          lng: row.dropoff_lng,
+          address: row.dropoff_address || 'Unknown Dropoff'
+        },
+        scheduledTime: row.scheduled_time,
+        createdAt: row.created_at, // Use created_at as completion time
+        driverArrivalTime: row.driver_arrival_time,
+        rideStartTime: row.ride_start_time,
+        paymentMethod: row.payment_method,
+        transactionId: row.transaction_id,
+        distanceKm: row.distance_km,
+        durationMins: row.duration_mins,
+        gstAmount: row.gst_amount,
+        baseFare: row.base_fare,
+        customerRating: row.customer_rating,
+        customerFeedback: row.customer_feedback,
+        driverDetails: {
+          name: row.driver_name,
+          phone: row.driver_phone,
+          vehicle_type: row.vehicle_type,
+          profile_picture_url: row.profile_picture_url
+        },
+        customerDetails: {
+          name: row.customer_name,
+          phone: row.customer_phone
         }
-      }
-      
-      // Populate customer details
-      if (ride.uid && ride.uid !== 'anonymous') {
-        try {
-           const result = await db.query('SELECT name, phone FROM users WHERE uid = $1', [ride.uid]);
-           if (result.rows.length > 0) {
-              ride.customerDetails = result.rows[0];
-           }
-        } catch (e) {
-           console.error('Error fetching customer details for history ride:', e);
-        }
-      }
-    }
-
-    rides.sort((a, b) => {
-      if (!a.createdAt || !b.createdAt) return 0;
-      return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+      };
     });
 
     res.status(200).json({ success: true, rides });

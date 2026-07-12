@@ -83,15 +83,53 @@ const getHistory = async (req, res) => {
     const uid = result.rows[0].uid;
     
     const ridesRes = await db.query(
-      `SELECT r.*, d.name as driver_name, d.phone as driver_phone, d.profile_picture_url as driver_pic
+      `SELECT r.*, d.name as driver_name, d.phone as driver_phone, d.profile_picture_url as driver_pic, d.vehicle_type
        FROM rides_history r
        LEFT JOIN drivers d ON r.driver_uid = d.driver_uid
        WHERE r.customer_uid = $1 
-       ORDER BY r.scheduled_time DESC`,
+       ORDER BY r.created_at DESC`,
       [uid]
     );
 
-    res.status(200).json({ success: true, rides: ridesRes.rows });
+    const rides = ridesRes.rows.map(row => {
+      return {
+        id: row.ride_id,
+        uid: row.customer_uid,
+        assignedDriverId: row.driver_uid,
+        status: row.status,
+        fare: row.fare,
+        pickupLocation: {
+          lat: row.pickup_lat,
+          lng: row.pickup_lng,
+          address: row.pickup_address || 'Unknown Pickup'
+        },
+        dropoffLocation: {
+          lat: row.dropoff_lat,
+          lng: row.dropoff_lng,
+          address: row.dropoff_address || 'Unknown Dropoff'
+        },
+        scheduledTime: row.scheduled_time,
+        createdAt: row.created_at, // Use created_at as completion time
+        driverArrivalTime: row.driver_arrival_time,
+        rideStartTime: row.ride_start_time,
+        paymentMethod: row.payment_method,
+        transactionId: row.transaction_id,
+        distanceKm: row.distance_km,
+        durationMins: row.duration_mins,
+        gstAmount: row.gst_amount,
+        baseFare: row.base_fare,
+        customerRating: row.customer_rating,
+        customerFeedback: row.customer_feedback,
+        driverDetails: {
+          name: row.driver_name,
+          phone: row.driver_phone,
+          vehicle_type: row.vehicle_type,
+          profile_picture_url: row.driver_pic
+        }
+      };
+    });
+
+    res.status(200).json({ success: true, rides: rides });
   } catch (error) {
     console.error('Error fetching ride history:', error);
     res.status(500).json({ error: 'Failed to fetch ride history' });

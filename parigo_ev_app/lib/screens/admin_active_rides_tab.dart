@@ -278,96 +278,106 @@ class _AdminActiveRidesTabState extends State<AdminActiveRidesTab> {
         itemCount: _completedRides.length,
         itemBuilder: (context, index) {
           final ride = _completedRides[index];
-          final pDesc = _getLocationDescription(ride['pickup']);
-          final dDesc = _getLocationDescription(ride['destination']);
+          final pDesc = _getLocationDescription(ride['pickupLocation'] ?? ride['pickup']);
+          final dDesc = _getLocationDescription(ride['dropoffLocation'] ?? ride['destination']);
           
           return Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
             child: GlassCard(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: Colors.greenAccent),
-                          ),
-                          child: const Text(
-                            'COMPLETED',
-                            style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-                          ),
-                        ),
-                        Text(
-                          '₹${ride['estimatedFare'] ?? '---'}',
-                          style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 18),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        const Icon(Icons.my_location, color: AppTheme.primary, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(pDesc, style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14))),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 9),
-                      child: Align(alignment: Alignment.centerLeft, child: SizedBox(height: 12, child: VerticalDivider(color: AppTheme.outline))),
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, color: AppTheme.primaryContainer, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(dDesc, style: const TextStyle(color: AppTheme.onSurface, fontSize: 14, fontWeight: FontWeight.bold))),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.outline),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              padding: EdgeInsets.zero,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => RideDetailsScreen(ride: ride, isAdmin: true)),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.person, color: AppTheme.primary, size: 16),
-                              const SizedBox(width: 8),
-                              Text('Customer: ${ride['customerDetails'] != null ? ride['customerDetails']['name'] : (ride['customerPhone'] ?? 'Unknown')}', style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 13)),
-                            ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: Colors.greenAccent),
+                            ),
+                            child: const Text(
+                              'COMPLETED',
+                              style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.drive_eta, color: AppTheme.primaryContainer, size: 16),
-                              const SizedBox(width: 8),
-                              Text('Driver: ${ride['driverDetails'] != null ? ride['driverDetails']['name'] : (ride['assignedDriverId'] ?? 'Unknown')}', style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 13)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.payment, color: Colors.greenAccent, size: 16),
-                              const SizedBox(width: 8),
-                              Text('Payment: ${ride['paymentMethod'] ?? 'CASH'}', style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 13)),
-                            ],
+                          Text(
+                            '₹${ride['fare'] ?? ride['estimatedFare'] ?? '---'}',
+                            style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 18),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          const Icon(Icons.my_location, color: AppTheme.primary, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(pDesc, style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14))),
+                        ],
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 9),
+                        child: Align(alignment: Alignment.centerLeft, child: SizedBox(height: 12, child: VerticalDivider(color: AppTheme.outline))),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, color: AppTheme.primaryContainer, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(dDesc, style: const TextStyle(color: AppTheme.onSurface, fontSize: 14, fontWeight: FontWeight.bold))),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.outline),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.person, color: AppTheme.primary, size: 16),
+                                const SizedBox(width: 8),
+                                Text('Customer: ${ride['customerDetails'] != null ? ride['customerDetails']['name'] : (ride['customerPhone'] ?? 'Unknown')}', style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 13)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.drive_eta, color: AppTheme.primaryContainer, size: 16),
+                                const SizedBox(width: 8),
+                                Text('Driver: ${ride['driverDetails'] != null ? ride['driverDetails']['name'] : (ride['assignedDriverId'] ?? 'Unknown')}', style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 13)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.payment, color: Colors.greenAccent, size: 16),
+                                const SizedBox(width: 8),
+                                Text('Payment: ${ride['paymentMethod'] ?? 'CASH'}', style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 13)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
