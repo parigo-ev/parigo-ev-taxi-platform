@@ -10,11 +10,40 @@ class ParigoLogo extends StatelessWidget {
     final style = textStyle ?? Theme.of(context).textTheme.displayLarge;
     final fontSize = style?.fontSize ?? 48.0;
     
-    // Scale logo height relative to the requested font size
-    return Image.asset(
-      'assets/images/logo.png',
-      height: fontSize * 1.2,
-      fit: BoxFit.contain,
+    final gradientStyle = style?.copyWith(
+      foreground: Paint()
+        ..shader = const LinearGradient(
+          colors: [AppTheme.primaryContainer, AppTheme.primary],
+        ).createShader(const Rect.fromLTWH(0.0, 0.0, 300.0, 70.0)),
+    );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'PARIG',
+          style: GoogleFonts.audiowide(textStyle: gradientStyle),
+        ),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Text(
+              'O',
+              style: GoogleFonts.audiowide(textStyle: gradientStyle),
+            ),
+            Icon(
+              Icons.bolt,
+              color: AppTheme.primary,
+              size: fontSize * 0.45, // Fits nicely inside the 'O'
+            ),
+          ],
+        ),
+        Text(
+          ' EV',
+          style: GoogleFonts.audiowide(textStyle: gradientStyle),
+        ),
+      ],
     );
   }
 }
