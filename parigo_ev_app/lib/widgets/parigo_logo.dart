@@ -22,25 +22,16 @@ class ParigoLogo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          'PARIG',
+          'PAR',
           style: GoogleFonts.audiowide(textStyle: gradientStyle),
         ),
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Text(
-              'O',
-              style: GoogleFonts.audiowide(textStyle: gradientStyle),
-            ),
-            Icon(
-              Icons.bolt,
-              color: AppTheme.primary,
-              size: fontSize * 0.45, // Fits nicely inside the 'O'
-            ),
-          ],
+        Icon(
+          Icons.bolt,
+          color: AppTheme.primary,
+          size: fontSize * 1.1, // slightly larger to match text height
         ),
         Text(
-          ' EV',
+          'GO EV',
           style: GoogleFonts.audiowide(textStyle: gradientStyle),
         ),
       ],

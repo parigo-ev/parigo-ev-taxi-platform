@@ -91,9 +91,30 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const submitSupportTicket = async (req, res) => {
+  const { rideId, issueType, description } = req.body;
+  const uid = req.user.uid;
+
+  if (!issueType || !description) {
+    return res.status(400).json({ error: 'issueType and description are required' });
+  }
+
+  try {
+    const result = await db.query(
+      'INSERT INTO support_tickets (uid, ride_id, issue_type, description) VALUES ($1, $2, $3, $4) RETURNING id',
+      [uid, rideId, issueType, description]
+    );
+    res.status(200).json({ success: true, ticketId: result.rows[0].id, message: 'Support ticket submitted successfully' });
+  } catch (error) {
+    console.error('Error submitting support ticket:', error);
+    res.status(500).json({ error: 'Failed to submit support ticket' });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfilePicture,
   deleteAccount,
-  updateProfile
+  updateProfile,
+  submitSupportTicket
 };

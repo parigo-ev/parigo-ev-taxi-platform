@@ -6,5 +6,6 @@ router.get('/profile/:phone', userController.getProfile);
 router.post('/update-profile-picture', userController.updateProfilePicture);
 router.delete('/delete/:phone', userController.deleteAccount);
 router.post('/update-profile', userController.updateProfile);
+router.post('/support/tickets', userController.submitSupportTicket);
 
 module.exports = router;
