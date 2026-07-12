@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import 'report_issue_screen.dart';
+import 'legal_policies_screen.dart';
 
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
@@ -206,8 +207,7 @@ class SupportScreen extends StatelessWidget {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    // Navigate to legal/privacy policy (could be a webview)
-                    _launchUrl('https://parigoev.com/privacy', context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const LegalPoliciesScreen()));
                   },
                   child: const Text('Privacy Policy & Terms of Service', style: TextStyle(color: AppTheme.primaryContainer, decoration: TextDecoration.underline)),
                 ),
