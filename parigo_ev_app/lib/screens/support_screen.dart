@@ -133,10 +133,12 @@ class SupportScreen extends StatelessWidget {
               const SizedBox(height: 40),
               Text('Frequently Asked Questions',
                   style: GoogleFonts.nunito(
-                      color: AppTheme.onSurface, fontSize: 20, fontWeight: FontWeight.bold)),
+                      color: AppTheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               
-              // FAQS
+              // FAQS - BOOKING & RIDES
+              Text('Booking & Rides', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
               GlassCard(
                 child: Column(
                   children: [
@@ -151,13 +153,48 @@ class SupportScreen extends StatelessWidget {
                     ),
                     const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
                     _buildFAQItem(
+                      'Can I change my destination?',
+                      'Currently, destinations must be fixed at the time of booking to ensure accurate range calculations for our EVs.',
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              // FAQS - PAYMENTS & WALLET
+              Text('Payments & Wallet', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              GlassCard(
+                child: Column(
+                  children: [
+                    _buildFAQItem(
                       'How do refunds work?',
                       'Refunds for cancelled rides or disputes will be credited to your Parigo Wallet instantly, or sent to your original payment method within 3-5 business days.',
                     ),
                     const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
                     _buildFAQItem(
+                      'How do I apply a coupon?',
+                      'During the booking process, tap on the "Apply Coupon" section before confirming the ride to enter your promo code.',
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              // FAQS - EV & SAFETY
+              Text('Safety & EVs', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              GlassCard(
+                child: Column(
+                  children: [
+                    _buildFAQItem(
                       'What if the EV runs out of charge during my trip?',
-                      'Our drivers are strictly monitored to ensure they have enough range for your trip before they arrive. In the extremely rare event of an issue, we will immediately dispatch a backup cab at no extra cost.',
+                      'Our system ensures drivers have enough range before they are dispatched. If an issue occurs, a backup cab is dispatched immediately at no extra cost.',
+                    ),
+                    const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                    _buildFAQItem(
+                      'Are the EVs sanitized?',
+                      'Yes! All our fleet vehicles undergo rigorous sanitization before and after every ride.',
                     ),
                   ],
                 ),
@@ -183,18 +220,21 @@ class SupportScreen extends StatelessWidget {
   }
 
   Widget _buildFAQItem(String question, String answer) {
-    return ExpansionTile(
-      title: Text(question,
-          style: const TextStyle(
-              color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
-      iconColor: AppTheme.primaryContainer,
-      collapsedIconColor: AppTheme.onSurfaceVariant,
-      childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-      children: [
-        Text(answer,
-            style:
-                const TextStyle(color: AppTheme.onSurfaceVariant, height: 1.5)),
-      ],
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        title: Text(question,
+            style: const TextStyle(
+                color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
+        iconColor: AppTheme.primaryContainer,
+        collapsedIconColor: AppTheme.onSurfaceVariant,
+        childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+        children: [
+          Text(answer,
+              style:
+                  const TextStyle(color: AppTheme.onSurfaceVariant, height: 1.5)),
+        ],
+      ),
     );
   }
 }
