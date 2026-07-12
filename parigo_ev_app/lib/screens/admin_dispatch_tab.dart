@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/primary_button.dart';
@@ -22,12 +24,24 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
   bool _isLoading = true;
   List<dynamic> _pendingRides = [];
   List<Map<String, String>> _availableDrivers = [];
+  Timer? _pollingTimer;
+  final Set<String> _knownRideIds = {};
 
   @override
   void initState() {
     super.initState();
-    _fetchPendingRides();
+    _fetchPendingRides(silent: false);
     _fetchAvailableDrivers();
+    // Start polling timer
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _fetchPendingRides(silent: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchAvailableDrivers() async {
@@ -57,8 +71,10 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
     }
   }
 
-  Future<void> _fetchPendingRides() async {
-    setState(() => _isLoading = true);
+  Future<void> _fetchPendingRides({bool silent = false}) async {
+    if (!silent) {
+      if (mounted) setState(() => _isLoading = true);
+    }
     try {
       final response = await ApiClient
           .get(
@@ -68,19 +84,43 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() {
-          _pendingRides = data['rides'] ?? [];
-          _isLoading = false;
-        });
+        final List<dynamic> rides = data['rides'] ?? [];
+        
+        bool hasNewRide = false;
+        
+        if (mounted) {
+          setState(() {
+            _pendingRides = rides;
+            if (!silent) _isLoading = false;
+            
+            // Check for new rides to trigger alarm
+            for (var ride in rides) {
+              final String id = ride['id'].toString();
+              if (!_knownRideIds.contains(id)) {
+                _knownRideIds.add(id);
+                // Only trigger alarm on silent (polling) fetches to avoid ringing on initial load
+                if (silent) {
+                  hasNewRide = true;
+                }
+              }
+            }
+          });
+          
+          if (hasNewRide) {
+            FlutterRingtonePlayer().playAlarm();
+          }
+        }
       } else {
         throw Exception('Failed to load rides');
       }
     } catch (e) {
       print('Error loading pending rides: $e');
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not fetch pending rides.')),
-      );
+      if (!silent && mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not fetch pending rides.')),
+        );
+      }
     }
   }
 
@@ -97,7 +137,7 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
       if (response.statusCode == 200) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ride Cancelled Successfully')));
-          _fetchPendingRides();
+          _fetchPendingRides(silent: false);
         }
       } else {
         throw Exception('Failed to cancel ride');
@@ -294,7 +334,7 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
         const SnackBar(content: Text('Failed to assign driver.')),
       );
       // Re-fetch to restore state if it failed
-      _fetchPendingRides();
+      _fetchPendingRides(silent: false);
     }
   }
 
@@ -317,7 +357,7 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.onSurface),
             onPressed: () {
-              _fetchPendingRides();
+              _fetchPendingRides(silent: false);
               _fetchAvailableDrivers();
             },
           )
@@ -337,7 +377,7 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
                     ),
                   )
                 : RefreshIndicator(
-                    onRefresh: _fetchPendingRides,
+                    onRefresh: () => _fetchPendingRides(silent: false),
                     color: AppTheme.primaryContainer,
                     backgroundColor: AppTheme.surfaceContainer,
                     child: ListView.builder(
