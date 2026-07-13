@@ -10,8 +10,10 @@ router.post('/upload-photo', driverController.uploadPhoto);
 router.get('/rides/assigned', driverController.getAssignedRides);
 router.get('/rides/history', driverController.getHistoryRides);
 router.post('/rides/update-status', driverController.updateRideStatus);
+router.post('/ride/status', driverController.updateRideStatus);
 router.get('/earnings', driverController.getEarnings);
 router.post('/status', driverController.updateStatus);
 router.post('/battery', driverController.updateBattery);
+router.get('/feedback/:driverId', driverController.getDriverFeedback);
 
 module.exports = router;

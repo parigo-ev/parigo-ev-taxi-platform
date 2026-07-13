@@ -1,0 +1,19 @@
+{
+  "@@locale": "en",
+  "appTitle": "Parigo EV",
+  "driverProfile": "Driver Profile",
+  "vehicle": "VEHICLE",
+  "settings": "SETTINGS",
+  "tripHistory": "Trip History",
+  "walletAndEarnings": "Wallet & Earnings",
+  "helpAndSupport": "Help & Support",
+  "aboutParigoEv": "About Parigo EV",
+  "language": "Language",
+  "logout": "LOGOUT",
+  "rating": "Rating",
+  "fetchingProfile": "Fetching profile...",
+  "featureComingSoon": "Feature coming soon!",
+  "confirmLogout": "Are you sure you want to logout?",
+  "cancel": "Cancel",
+  "customerFeedback": "Customer Feedback"
+}

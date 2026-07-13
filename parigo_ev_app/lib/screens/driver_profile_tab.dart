@@ -11,7 +11,11 @@ import 'support_screen.dart';
 import 'about_parigo_ev_screen.dart';
 import 'trip_history_screen.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
-
+import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../core/language_provider.dart';
+import 'driver_feedback_screen.dart';
+import 'wallet_screen.dart';
 
 class DriverProfileTab extends StatefulWidget {
   const DriverProfileTab({super.key});
@@ -22,9 +26,11 @@ class DriverProfileTab extends StatefulWidget {
 
 class _DriverProfileTabState extends State<DriverProfileTab> {
   bool _isLoading = true;
-  String _name = 'Loading...';
-  String _vehicleType = 'Loading...';
-  String _licensePlate = 'Loading...';
+  String _name = '';
+  String _vehicleType = '';
+  String _licensePlate = '';
+  String _rating = 'New';
+  String _driverUid = '';
 
   @override
   void initState() {
@@ -48,6 +54,8 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
             _name = data['name'] ?? 'Driver';
             _vehicleType = data['vehicle_type'] ?? 'Unknown Vehicle';
             _licensePlate = data['license_number'] ?? 'Unknown License';
+            _rating = data['average_rating']?.toString() ?? 'New';
+            _driverUid = data['driver_uid'] ?? '';
             _isLoading = false;
           });
         }
@@ -60,11 +68,50 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
     }
   }
 
+  void _showLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.surfaceContainer,
+          title: Text(AppLocalizations.of(context)!.language, style: const TextStyle(color: AppTheme.onSurface)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('English', style: TextStyle(color: AppTheme.onSurface)),
+                onTap: () {
+                  Provider.of<LanguageProvider>(context, listen: false).changeLanguage('en');
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('हिंदी (Hindi)', style: TextStyle(color: AppTheme.onSurface)),
+                onTap: () {
+                  Provider.of<LanguageProvider>(context, listen: false).changeLanguage('hi');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryContainer));
+      return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: AppTheme.primaryContainer),
+              const SizedBox(height: 16),
+              Text(l10n.fetchingProfile, style: const TextStyle(color: AppTheme.onSurfaceVariant)),
+            ],
+          ));
     }
 
     return SingleChildScrollView(
@@ -86,24 +133,34 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
             ),
           ),
           const SizedBox(height: 16),
-          Text(_name, style: Theme.of(context).textTheme.headlineMedium),
+          Text(_name.isNotEmpty ? _name : l10n.driverProfile, style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.greenAccent.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(99),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.star, color: Colors.orangeAccent, size: 18),
-                SizedBox(width: 8),
-                Text('4.9 Rating',
-                    style: TextStyle(
-                        color: Colors.greenAccent,
-                        fontWeight: FontWeight.bold)),
-              ],
+          GestureDetector(
+            onTap: () {
+              if (_driverUid.isNotEmpty) {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => DriverFeedbackScreen(driverId: _driverUid)));
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star, color: Colors.orangeAccent, size: 18),
+                  const SizedBox(width: 8),
+                  Text('$_rating ${l10n.rating}',
+                      style: const TextStyle(
+                          color: Colors.greenAccent,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward_ios, color: Colors.greenAccent, size: 10),
+                ],
+              ),
             ),
           ),
 
@@ -112,7 +169,7 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
           // 2. Vehicle Info
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('VEHICLE',
+            child: Text(l10n.vehicle,
                 style: Theme.of(context)
                     .textTheme
                     .labelLarge
@@ -159,7 +216,7 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
           // 3. Settings Menu
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('SETTINGS',
+            child: Text(l10n.settings,
                 style: Theme.of(context)
                     .textTheme
                     .labelLarge
@@ -170,13 +227,15 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                _buildListTile(Icons.history, 'Trip History', context, const TripHistoryScreen(role: 'Driver')),
+                _buildListTile(Icons.account_balance_wallet, l10n.walletAndEarnings, context, const WalletScreen()),
                 const Divider(color: AppTheme.outline, height: 1),
-                _buildListTile(Icons.ev_station, 'Saved Charging Stations', context, null),
+                _buildListTile(Icons.history, l10n.tripHistory, context, const TripHistoryScreen(role: 'Driver')),
                 const Divider(color: AppTheme.outline, height: 1),
-                _buildListTile(Icons.support_agent, 'Help & Support', context, const SupportScreen()),
+                _buildListTile(Icons.language, l10n.language, context, null, onTapOverride: _showLanguageDialog),
                 const Divider(color: AppTheme.outline, height: 1),
-                _buildListTile(Icons.info_outline, 'About Parigo EV', context, const AboutParigoEvScreen()),
+                _buildListTile(Icons.support_agent, l10n.helpAndSupport, context, const SupportScreen()),
+                const Divider(color: AppTheme.outline, height: 1),
+                _buildListTile(Icons.info_outline, l10n.aboutParigoEv, context, const AboutParigoEvScreen()),
               ],
             ),
           ),
@@ -188,11 +247,33 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: () async {
-                // Clear session and sign out from Firebase
-                await FirebaseAuth.instance.signOut();
-                await UserSession().clear();
-                if (context.mounted) {
-                  Navigator.of(context).pushReplacementNamed('/');
+                final bool? confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: AppTheme.surfaceContainer,
+                      title: Text(l10n.logout, style: const TextStyle(color: AppTheme.onSurface)),
+                      content: Text(l10n.confirmLogout, style: const TextStyle(color: AppTheme.onSurfaceVariant)),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text(l10n.cancel, style: const TextStyle(color: AppTheme.onSurfaceVariant)),
+                          onPressed: () => Navigator.of(context).pop(false),
+                        ),
+                        TextButton(
+                          child: Text(l10n.logout, style: const TextStyle(color: Colors.redAccent)),
+                          onPressed: () => Navigator.of(context).pop(true),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                
+                if (confirm == true) {
+                  await FirebaseAuth.instance.signOut();
+                  await UserSession().clear();
+                  if (context.mounted) {
+                    Navigator.of(context).pushReplacementNamed('/');
+                  }
                 }
               },
               style: OutlinedButton.styleFrom(
@@ -201,8 +282,8 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('LOGOUT',
-                  style: TextStyle(
+              child: Text(l10n.logout,
+                  style: const TextStyle(
                       color: Colors.redAccent,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.5)),
@@ -213,18 +294,18 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
     );
   }
 
-  Widget _buildListTile(IconData icon, String title, BuildContext context, Widget? destination) {
+  Widget _buildListTile(IconData icon, String title, BuildContext context, Widget? destination, {VoidCallback? onTapOverride}) {
     return ListTile(
       leading: Icon(icon, color: AppTheme.onSurfaceVariant),
       title: Text(title, style: const TextStyle(color: AppTheme.onSurface)),
       trailing: const Icon(Icons.arrow_forward_ios,
           color: AppTheme.onSurfaceVariant, size: 16),
-      onTap: () {
+      onTap: onTapOverride ?? () {
         if (destination != null) {
           Navigator.push(context, MaterialPageRoute(builder: (context) => destination));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Feature coming soon!')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.featureComingSoon)),
           );
         }
       },

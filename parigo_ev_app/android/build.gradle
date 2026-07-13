@@ -11,6 +11,10 @@ buildscript {
     }
 }
 allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
             if (details.requested.group == 'org.jetbrains.kotlin') {
@@ -35,6 +39,13 @@ subprojects {
     project.evaluationDependsOn(":app")
     project.buildscript {
         ext.kotlin_version = '2.2.0'
+        configurations.all {
+            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'org.jetbrains.kotlin') {
+                    details.useVersion '2.2.0'
+                }
+            }
+        }
     }
 }
 

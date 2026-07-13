@@ -157,6 +157,14 @@ class _AdminDrawerState extends State<AdminDrawer> {
               currentIndex: currentIndex,
               dashboardState: dashboardState,
             ),
+            _buildMenuItem(
+              context,
+              icon: Icons.report_problem,
+              title: 'Reports & Issues',
+              index: 7,
+              currentIndex: currentIndex,
+              dashboardState: dashboardState,
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Divider(color: AppTheme.outline),

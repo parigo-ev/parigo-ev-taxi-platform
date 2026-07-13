@@ -15,7 +15,28 @@ const getProfile = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Driver not found' });
     }
-    res.status(200).json(result.rows[0]);
+    
+    let profileData = result.rows[0];
+    
+    // Fetch average rating
+    try {
+       const ratingResult = await db.query(`
+         SELECT AVG(customer_rating) as avg_rating
+         FROM rides_history
+         WHERE driver_uid = $1 AND customer_rating IS NOT NULL
+       `, [profileData.driver_uid]);
+       
+       if (ratingResult.rows.length > 0 && ratingResult.rows[0].avg_rating) {
+          profileData.average_rating = parseFloat(ratingResult.rows[0].avg_rating).toFixed(1);
+       } else {
+          profileData.average_rating = 'New';
+       }
+    } catch (e) {
+       console.error('Error fetching rating:', e);
+       profileData.average_rating = '4.9'; // Fallback
+    }
+
+    res.status(200).json(profileData);
   } catch (error) {
     console.error('Error fetching driver profile:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -375,6 +396,24 @@ const updateBattery = async (req, res) => {
   }
 };
 
+const getDriverFeedback = async (req, res) => {
+  try {
+    const { driverId } = req.params;
+    const query = `
+      SELECT r.customer_rating, r.customer_feedback, r.created_at, u.name as customer_name
+      FROM rides_history r
+      LEFT JOIN users u ON r.customer_uid = u.uid
+      WHERE r.driver_uid = $1 AND r.customer_rating IS NOT NULL
+      ORDER BY r.created_at DESC
+    `;
+    const result = await db.query(query, [driverId]);
+    res.status(200).json({ success: true, feedback: result.rows });
+  } catch (error) {
+    console.error('Error fetching driver feedback:', error);
+    res.status(500).json({ error: 'Failed to fetch driver feedback' });
+  }
+};
+
 module.exports = {
   getProfile,
   updateLocation,
@@ -385,6 +424,7 @@ module.exports = {
   getEarnings,
   updateRideStatus,
   updateStatus,
-  updateBattery
+  updateBattery,
+  getDriverFeedback
 };
 

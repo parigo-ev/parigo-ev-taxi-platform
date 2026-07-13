@@ -1,0 +1,19 @@
+{
+  "@@locale": "hi",
+  "appTitle": "Parigo EV",
+  "driverProfile": "ड्राइवर प्रोफ़ाइल",
+  "vehicle": "वाहन",
+  "settings": "सेटिंग्स",
+  "tripHistory": "यात्रा का इतिहास",
+  "walletAndEarnings": "वॉलेट और कमाई",
+  "helpAndSupport": "सहायता और समर्थन",
+  "aboutParigoEv": "Parigo EV के बारे में",
+  "language": "भाषा (Language)",
+  "logout": "लॉग आउट",
+  "rating": "रेटिंग",
+  "fetchingProfile": "प्रोफ़ाइल प्राप्त की जा रही है...",
+  "featureComingSoon": "सुविधा जल्द आ रही है!",
+  "confirmLogout": "क्या आप वाकई लॉग आउट करना चाहते हैं?",
+  "cancel": "रद्द करें",
+  "customerFeedback": "ग्राहक प्रतिक्रिया"
+}

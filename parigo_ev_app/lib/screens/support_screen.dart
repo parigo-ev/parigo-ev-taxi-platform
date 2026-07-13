@@ -143,17 +143,17 @@ class SupportScreen extends StatelessWidget {
               GlassCard(
                 child: Column(
                   children: [
-                    _buildFAQItem(
+                    _buildFAQItem(context,
                       'How do I schedule a ride?',
                       'On the home screen, tap "Schedule a Ride", select your pickup/dropoff locations, and pick your preferred date and time.',
                     ),
                     const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(
+                    _buildFAQItem(context,
                       'What happens if my driver doesn\'t arrive?',
                       'If your driver doesn\'t arrive within 15 minutes of your scheduled time, you can cancel without any penalty and we will assist in rebooking.',
                     ),
                     const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(
+                    _buildFAQItem(context,
                       'Can I change my destination?',
                       'Currently, destinations must be fixed at the time of booking to ensure accurate range calculations for our EVs.',
                     ),
@@ -168,12 +168,12 @@ class SupportScreen extends StatelessWidget {
               GlassCard(
                 child: Column(
                   children: [
-                    _buildFAQItem(
+                    _buildFAQItem(context,
                       'How do refunds work?',
                       'Refunds for cancelled rides or disputes will be credited to your Parigo Wallet instantly, or sent to your original payment method within 3-5 business days.',
                     ),
                     const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(
+                    _buildFAQItem(context,
                       'How do I apply a coupon?',
                       'During the booking process, tap on the "Apply Coupon" section before confirming the ride to enter your promo code.',
                     ),
@@ -188,12 +188,12 @@ class SupportScreen extends StatelessWidget {
               GlassCard(
                 child: Column(
                   children: [
-                    _buildFAQItem(
+                    _buildFAQItem(context,
                       'What if the EV runs out of charge during my trip?',
                       'Our system ensures drivers have enough range before they are dispatched. If an issue occurs, a backup cab is dispatched immediately at no extra cost.',
                     ),
                     const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(
+                    _buildFAQItem(context,
                       'Are the EVs sanitized?',
                       'Yes! All our fleet vehicles undergo rigorous sanitization before and after every ride.',
                     ),
@@ -219,7 +219,7 @@ class SupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFAQItem(String question, String answer) {
+  Widget _buildFAQItem(BuildContext context, String question, String answer) {
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(

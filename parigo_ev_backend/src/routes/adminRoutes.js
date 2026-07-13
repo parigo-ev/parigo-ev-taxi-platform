@@ -23,5 +23,7 @@ router.get('/coupons', adminController.getCoupons);
 router.post('/coupons/toggle-status', adminController.toggleCouponStatus);
 router.get('/notifications', adminController.getSentNotifications);
 router.post('/notifications/send', adminController.sendAdminNotification);
+router.get('/tickets', adminController.getTickets);
+router.post('/tickets/resolve', adminController.resolveTicket);
 
 module.exports = router;

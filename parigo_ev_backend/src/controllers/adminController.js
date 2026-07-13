@@ -584,6 +584,36 @@ const getSentNotifications = async (req, res) => {
   }
 };
 
+const getTickets = async (req, res) => {
+  try {
+    const query = `
+      SELECT t.*, u.name as customer_name, u.phone as customer_phone
+      FROM support_tickets t
+      LEFT JOIN users u ON t.uid = u.uid
+      ORDER BY t.created_at DESC
+    `;
+    const result = await db.query(query);
+    res.status(200).json({ success: true, tickets: result.rows });
+  } catch (error) {
+    console.error('Error fetching support tickets:', error);
+    res.status(500).json({ error: 'Failed to fetch support tickets' });
+  }
+};
+
+const resolveTicket = async (req, res) => {
+  const { ticketId } = req.body;
+  if (!ticketId) {
+    return res.status(400).json({ error: 'ticketId is required' });
+  }
+  try {
+    await db.query("UPDATE support_tickets SET status = 'RESOLVED' WHERE id = $1", [ticketId]);
+    res.status(200).json({ success: true, message: 'Ticket resolved successfully' });
+  } catch (error) {
+    console.error('Error resolving support ticket:', error);
+    res.status(500).json({ error: 'Failed to resolve support ticket' });
+  }
+};
+
 module.exports = {
   reportCrash,
   getPendingRides,
@@ -605,5 +635,7 @@ module.exports = {
   getCoupons,
   toggleCouponStatus,
   sendAdminNotification,
-  getSentNotifications
+  getSentNotifications,
+  getTickets,
+  resolveTicket
 };

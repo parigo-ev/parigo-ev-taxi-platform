@@ -124,7 +124,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                 
                 // Fare Table
                 pw.TableHelper.fromTextArray(
-                  context: context,
                   data: <List<String>>[
                     <String>['Description', 'Amount (INR)'],
                     <String>['Base Fare & Distance', base.toStringAsFixed(2)],

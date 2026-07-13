@@ -20,7 +20,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../widgets/parigo_logo.dart';
 import '../widgets/location_disclosure_dialog.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
-
+import '../core/deep_link_handler.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({Key? key}) : super(key: key);
@@ -60,6 +60,34 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
     _loadLiveDrivers();
     _timer =
         Timer.periodic(const Duration(seconds: 10), (_) => _loadLiveDrivers());
+        
+    DeepLinkHandler().pendingDestination.addListener(_handleDeepLink);
+    _handleDeepLink(); // check initial state
+  }
+
+  void _handleDeepLink() {
+    final dest = DeepLinkHandler().pendingDestination.value;
+    if (dest != null) {
+      if (mounted) {
+        setState(() {
+          _customDestinationPosition = LatLng(dest['lat'], dest['lng']);
+          _customDestinationAddress = dest['description'];
+        });
+        
+        _fetchRouteAndDraw(dest);
+        
+        if (dest['description'] == 'Shared Location') {
+           _fetchAddressFromCoordinates(_customDestinationPosition!).then((address) {
+             if (mounted) {
+               setState(() {
+                  _customDestinationAddress = address;
+               });
+             }
+           });
+        }
+      }
+      DeepLinkHandler().clearPendingDestination();
+    }
   }
 
   Timer? _timer;
@@ -83,6 +111,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
 
   @override
   void dispose() {
+    DeepLinkHandler().pendingDestination.removeListener(_handleDeepLink);
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
@@ -224,8 +253,17 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
       _customPickupAddress = 'Fetching address...';
       _updatePickupMarker();
     });
-    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng(position.latitude, position.longitude), 15));
+
+    if (_customDestinationPosition != null) {
+      _fetchRouteAndDraw({
+        'lat': _customDestinationPosition!.latitude,
+        'lng': _customDestinationPosition!.longitude,
+        'description': _customDestinationAddress ?? 'Destination',
+      });
+    } else {
+      _mapController?.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(position.latitude, position.longitude), 15));
+    }
 
     final address = await _fetchAddressFromCoordinates(
         LatLng(position.latitude, position.longitude));
