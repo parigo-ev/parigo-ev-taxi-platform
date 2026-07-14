@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.9.24'
+    ext.kotlin_version = '2.0.21'
     repositories {
         google()
         mavenCentral()
@@ -9,32 +9,22 @@ buildscript {
         classpath 'com.google.gms:google-services:4.4.0'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
     }
-    configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'org.jetbrains.kotlin') {
-                details.useVersion '1.9.24'
-            }
-        }
-    }
-}
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'org.jetbrains.kotlin') {
-                details.useVersion '1.9.24'
-            }
-        }
-    }
 }
 
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.android.gms:play-services-measurement:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-api:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-impl:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-sdk:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-sdk-api:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-base:21.5.0'
+        }
     }
 }
 
@@ -44,16 +34,6 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
-    project.buildscript {
-        ext.kotlin_version = '1.9.24'
-        configurations.all {
-            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                if (details.requested.group == 'org.jetbrains.kotlin') {
-                    details.useVersion '1.9.24'
-                }
-            }
-        }
-    }
 }
 
 tasks.register("clean", Delete) {
