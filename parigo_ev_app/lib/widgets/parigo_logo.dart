@@ -18,24 +18,9 @@ class ParigoLogo extends StatelessWidget {
         ).createShader(const Rect.fromLTWH(0.0, 0.0, 300.0, 70.0)),
     );
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          'PAR',
-          style: GoogleFonts.audiowide(textStyle: gradientStyle),
-        ),
-        Icon(
-          Icons.bolt,
-          color: AppTheme.primary,
-          size: fontSize * 1.1, // slightly larger to match text height
-        ),
-        Text(
-          'GO EV',
-          style: GoogleFonts.audiowide(textStyle: gradientStyle),
-        ),
-      ],
+    return Text(
+      'PARIGO EV',
+      style: GoogleFonts.audiowide(textStyle: gradientStyle),
     );
   }
 }

@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '2.2.0'
+    ext.kotlin_version = '1.9.24'
     repositories {
         google()
         mavenCentral()
@@ -8,6 +8,13 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.4.0'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
+    }
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                details.useVersion '1.9.24'
+            }
+        }
     }
 }
 allprojects {
@@ -18,7 +25,7 @@ allprojects {
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
             if (details.requested.group == 'org.jetbrains.kotlin') {
-                details.useVersion '2.2.0'
+                details.useVersion '1.9.24'
             }
         }
     }
@@ -38,11 +45,11 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
     project.buildscript {
-        ext.kotlin_version = '2.2.0'
+        ext.kotlin_version = '1.9.24'
         configurations.all {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
                 if (details.requested.group == 'org.jetbrains.kotlin') {
-                    details.useVersion '2.2.0'
+                    details.useVersion '1.9.24'
                 }
             }
         }

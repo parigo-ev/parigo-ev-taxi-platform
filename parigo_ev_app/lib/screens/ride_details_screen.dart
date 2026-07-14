@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
@@ -28,6 +29,23 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
 
+  Map<String, dynamic>? _parseLocation(dynamic locData) {
+    if (locData == null) return null;
+    if (locData is Map) return Map<String, dynamic>.from(locData);
+    if (locData is String) {
+      try {
+        final map = jsonDecode(locData);
+        if (map is Map) return Map<String, dynamic>.from(map);
+      } catch (_) {
+        return {'address': locData};
+      }
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? get _pickup => _parseLocation(widget.ride['pickupLocation'] ?? widget.ride['pickup']);
+  Map<String, dynamic>? get _dropoff => _parseLocation(widget.ride['dropoffLocation'] ?? widget.ride['destination']);
+
   @override
   void initState() {
     super.initState();
@@ -35,33 +53,40 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
   }
 
   void _setupMap() {
-    final pickup = widget.ride['pickupLocation'];
-    final dropoff = widget.ride['dropoffLocation'];
+    final p = _pickup;
+    final d = _dropoff;
 
-    if (pickup != null && pickup['lat'] != null && dropoff != null && dropoff['lat'] != null) {
-      final pickupLatLng = LatLng(pickup['lat'], pickup['lng']);
-      final dropoffLatLng = LatLng(dropoff['lat'], dropoff['lng']);
+    if (p != null && p['lat'] != null && d != null && d['lat'] != null) {
+      final pickupLat = double.tryParse(p['lat'].toString());
+      final pickupLng = double.tryParse(p['lng'].toString());
+      final dropoffLat = double.tryParse(d['lat'].toString());
+      final dropoffLng = double.tryParse(d['lng'].toString());
 
-      _markers.add(Marker(
-        markerId: const MarkerId('pickup'),
-        position: pickupLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: const InfoWindow(title: 'Pickup'),
-      ));
+      if (pickupLat != null && pickupLng != null && dropoffLat != null && dropoffLng != null) {
+        final pickupLatLng = LatLng(pickupLat, pickupLng);
+        final dropoffLatLng = LatLng(dropoffLat, dropoffLng);
 
-      _markers.add(Marker(
-        markerId: const MarkerId('dropoff'),
-        position: dropoffLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow: const InfoWindow(title: 'Dropoff'),
-      ));
+        _markers.add(Marker(
+          markerId: const MarkerId('pickup'),
+          position: pickupLatLng,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: const InfoWindow(title: 'Pickup'),
+        ));
 
-      _polylines.add(Polyline(
-        polylineId: const PolylineId('route'),
-        points: [pickupLatLng, dropoffLatLng],
-        color: AppTheme.primary,
-        width: 4,
-      ));
+        _markers.add(Marker(
+          markerId: const MarkerId('dropoff'),
+          position: dropoffLatLng,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          infoWindow: const InfoWindow(title: 'Dropoff'),
+        ));
+
+        _polylines.add(Polyline(
+          polylineId: const PolylineId('route'),
+          points: [pickupLatLng, dropoffLatLng],
+          color: AppTheme.primary,
+          width: 4,
+        ));
+      }
     }
   }
 
@@ -118,8 +143,8 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                 // Route
                 pw.Text('Route Summary', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 8),
-                pw.Text('Pickup: ${widget.ride['pickupLocation']?['address'] ?? 'Unknown'}'),
-                pw.Text('Dropoff: ${widget.ride['dropoffLocation']?['address'] ?? 'Unknown'}'),
+                pw.Text('Pickup: ${_pickup?['address'] ?? 'Unknown'}'),
+                pw.Text('Dropoff: ${_dropoff?['address'] ?? 'Unknown'}'),
                 pw.SizedBox(height: 20),
                 
                 // Fare Table
@@ -171,12 +196,18 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pickup = widget.ride['pickupLocation'];
-    final dropoff = widget.ride['dropoffLocation'];
+    final p = _pickup;
+    final d = _dropoff;
     
     LatLng? initialPos;
-    if (pickup != null && pickup['lat'] != null) {
-      initialPos = LatLng(pickup['lat'], pickup['lng']);
+    if (p != null && p['lat'] != null && p['lng'] != null) {
+      final lat = double.tryParse(p['lat'].toString());
+      final lng = double.tryParse(p['lng'].toString());
+      if (lat != null && lng != null) {
+        initialPos = LatLng(lat, lng);
+      } else {
+        initialPos = const LatLng(20.5937, 78.9629); // Center of India fallback
+      }
     } else {
       initialPos = const LatLng(20.5937, 78.9629); // Center of India fallback
     }
@@ -248,7 +279,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                               children: [
                                 const Icon(Icons.my_location, color: Colors.green, size: 20),
                                 const SizedBox(width: 12),
-                                Expanded(child: Text(pickup?['address'] ?? 'Unknown Pickup', style: const TextStyle(color: AppTheme.onSurface))),
+                                Expanded(child: Text(p?['address'] ?? 'Unknown Pickup', style: const TextStyle(color: AppTheme.onSurface))),
                               ],
                             ),
                             Padding(
@@ -259,7 +290,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                               children: [
                                 const Icon(Icons.location_on, color: Colors.red, size: 20),
                                 const SizedBox(width: 12),
-                                Expanded(child: Text(dropoff?['address'] ?? 'Unknown Dropoff', style: const TextStyle(color: AppTheme.onSurface))),
+                                Expanded(child: Text(d?['address'] ?? 'Unknown Dropoff', style: const TextStyle(color: AppTheme.onSurface))),
                               ],
                             ),
                           ],

@@ -53,6 +53,33 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _handleNetworkError(dynamic e) {
+    setState(() {
+      _isLoading = false;
+    });
+    
+    final errorStr = e.toString();
+    if (errorStr.contains('SocketException') || errorStr.contains('Failed host lookup') || errorStr.contains('ClientException')) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Connection Failed'),
+          content: const Text('Oops! We couldn\'t connect to the server. Please check your internet connection, disable any active VPNs, and try again.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
   Future<void> _checkUser() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) return;
@@ -95,11 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Server error');
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Connection error: $e')));
+      _handleNetworkError(e);
     }
   }
 
@@ -154,11 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
             .showSnackBar(const SnackBar(content: Text('Incorrect PIN')));
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Connection error: $e')));
+      _handleNetworkError(e);
     }
   }
 
@@ -231,11 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Invalid OTP: ${e.message}')));
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      _handleNetworkError(e);
     }
   }
 
@@ -288,11 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Failed to verify OTP with backend');
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Backend Error: $e')));
+      _handleNetworkError(e);
     }
   }
 
@@ -325,11 +336,7 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Failed to set PIN');
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      _handleNetworkError(e);
     }
   }
 
