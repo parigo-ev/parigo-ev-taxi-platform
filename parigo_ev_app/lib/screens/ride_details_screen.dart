@@ -94,7 +94,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
     final pdf = pw.Document();
     
     // Fallbacks
-    final dateStr = widget.ride['createdAt'] != null ? DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.parse(widget.ride['createdAt'])) : 'N/A';
+    final dateStr = _formatDate(widget.ride['createdAt']);
     final amount = double.tryParse(widget.ride['fare']?.toString() ?? '0') ?? 0.0;
     final gst = double.tryParse(widget.ride['gstAmount']?.toString() ?? '0') ?? (amount * 0.05); // Estimate 5% if missing
     final base = double.tryParse(widget.ride['baseFare']?.toString() ?? '0') ?? (amount - gst);
@@ -184,13 +184,21 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
     }
   }
 
-  String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'N/A';
+  String _formatDate(dynamic dateData) {
+    if (dateData == null) return 'N/A';
     try {
-      final dt = DateTime.parse(dateStr);
+      if (dateData is Map && dateData['_seconds'] != null) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(dateData['_seconds'] * 1000);
+        return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
+      }
+      if (dateData is int) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(dateData);
+        return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
+      }
+      final dt = DateTime.parse(dateData.toString());
       return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
     } catch (e) {
-      return dateStr;
+      return dateData.toString();
     }
   }
 
