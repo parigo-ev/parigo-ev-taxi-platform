@@ -8,6 +8,12 @@ const getCustomerHistoryRides = async (req, res) => {
       return res.status(400).json({ error: 'uid is required' });
     }
 
+    
+    const formatDate = (dateObj) => {
+      if (!dateObj) return null;
+      return { _seconds: Math.floor(new Date(dateObj).getTime() / 1000) };
+    };
+    
     const ridesRes = await db.query(
       `SELECT r.*, d.name as driver_name, d.phone as driver_phone, d.profile_picture_url as driver_pic, d.vehicle_type
        FROM rides_history r
@@ -38,18 +44,18 @@ const getCustomerHistoryRides = async (req, res) => {
           description: row.dropoff_address || 'Unknown Dropoff',
           address: row.dropoff_address || 'Unknown Dropoff'
         },
-        scheduledTime: row.scheduled_time,
-        createdAt: row.created_at, 
-        driverArrivalTime: row.driver_arrival_time,
-        rideStartTime: row.ride_start_time,
+        scheduledTime: formatDate(row.scheduled_time),
+        createdAt: formatDate(row.created_at), 
+        driverArrivalTime: formatDate(row.driver_arrival_time),
+        rideStartTime: formatDate(row.ride_start_time),
         paymentMethod: row.payment_method,
         transactionId: row.transaction_id,
         distanceKm: row.distance_km,
         durationMins: row.duration_mins,
         gstAmount: row.gst_amount,
         baseFare: row.base_fare,
-        customerWaitPenalty: row.customer_wait_penalty,
-        driverLatePenalty: row.driver_late_penalty,
+        customerWaitPenalty: parseFloat(row.customer_wait_penalty || 0),
+        driverLatePenalty: parseFloat(row.driver_late_penalty || 0),
         customerRating: row.customer_rating,
         customerFeedback: row.customer_feedback,
         driverDetails: {
