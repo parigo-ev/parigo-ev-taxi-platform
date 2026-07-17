@@ -162,32 +162,55 @@ const getHistoryRides = async (req, res) => {
       return res.status(400).json({ error: 'driverId is required' });
     }
 
-    const snapshot = await admin.firestore().collection('rides')
-      .where('assignedDriverId', '==', driverId)
-      .where('status', 'in', ['COMPLETED', 'CANCELLED'])
-      .get();
-      
-    const rides = [];
-    snapshot.forEach(doc => {
-      rides.push({ id: doc.id, ...doc.data() });
-    });
+    const ridesRes = await db.query(
+      `SELECT r.*, u.name as customer_name, u.phone as customer_phone
+       FROM rides_history r
+       LEFT JOIN users u ON r.customer_uid = u.uid
+       WHERE r.driver_uid = $1 AND r.status IN ('COMPLETED', 'CANCELLED')
+       ORDER BY r.created_at DESC`,
+      [driverId]
+    );
 
-    for (let ride of rides) {
-      if (ride.uid && ride.uid !== 'anonymous') {
-        try {
-           const result = await db.query('SELECT name, phone FROM users WHERE uid = $1', [ride.uid]);
-           if (result.rows.length > 0) {
-              ride.customerDetails = result.rows[0];
-           }
-        } catch (e) {
-           console.error('Error fetching customer details for history ride:', e);
+    const rides = ridesRes.rows.map(row => {
+      return {
+        id: row.ride_id,
+        displayId: row.display_id,
+        uid: row.customer_uid,
+        assignedDriverId: row.driver_uid,
+        status: row.status,
+        finalFare: row.fare,
+        estimatedFare: row.fare,
+        pickup: {
+          lat: row.pickup_lat,
+          lng: row.pickup_lng,
+          description: row.pickup_address || 'Unknown Pickup',
+          address: row.pickup_address || 'Unknown Pickup'
+        },
+        destination: {
+          lat: row.dropoff_lat,
+          lng: row.dropoff_lng,
+          description: row.dropoff_address || 'Unknown Dropoff',
+          address: row.dropoff_address || 'Unknown Dropoff'
+        },
+        scheduledTime: row.scheduled_time,
+        createdAt: row.created_at, 
+        driverArrivalTime: row.driver_arrival_time,
+        rideStartTime: row.ride_start_time,
+        paymentMethod: row.payment_method,
+        transactionId: row.transaction_id,
+        distanceKm: row.distance_km,
+        durationMins: row.duration_mins,
+        gstAmount: row.gst_amount,
+        baseFare: row.base_fare,
+        customerWaitPenalty: row.customer_wait_penalty,
+        driverLatePenalty: row.driver_late_penalty,
+        customerRating: row.customer_rating,
+        customerFeedback: row.customer_feedback,
+        customerDetails: {
+          name: row.customer_name,
+          phone: row.customer_phone
         }
-      }
-    }
-
-    rides.sort((a, b) => {
-      if (!a.createdAt || !b.createdAt) return 0;
-      return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+      };
     });
 
     res.status(200).json({ success: true, rides });
