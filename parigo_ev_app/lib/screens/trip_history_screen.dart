@@ -181,7 +181,14 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(dateStr, style: const TextStyle(color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('ID: ${ride['displayId'] ?? ride['id']}', style: const TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 2),
+                          Text(dateStr, style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12)),
+                        ],
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

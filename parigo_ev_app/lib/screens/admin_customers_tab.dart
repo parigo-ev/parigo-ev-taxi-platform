@@ -7,6 +7,7 @@ import '../widgets/glass_card.dart';
 import '../core/api_constants.dart';
 import 'package:intl/intl.dart';
 import 'admin_dashboard_screen.dart';
+import 'admin_customer_details_screen.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
 
 
@@ -180,9 +181,18 @@ class _AdminCustomersTabState extends State<AdminCustomersTab> {
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 12.0),
                                   child: GlassCard(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Row(
+                                    padding: EdgeInsets.zero,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(24.0),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => AdminCustomerDetailsScreen(customer: customer)),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Row(
                                         children: [
                                           CircleAvatar(
                                             radius: 24,
@@ -271,6 +281,7 @@ class _AdminCustomersTabState extends State<AdminCustomersTab> {
                                           ),
                                         ],
                                       ),
+                                    ),
                                     ),
                                   ),
                                 );

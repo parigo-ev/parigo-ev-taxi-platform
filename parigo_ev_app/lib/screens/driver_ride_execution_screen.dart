@@ -659,7 +659,9 @@ class _DriverRideExecutionScreenState extends State<DriverRideExecutionScreen> w
                                   style: TextStyle(
                                       color: AppTheme.onSurfaceVariant)),
                             ],
-                          )
+                          ),
+                          const SizedBox(height: 4),
+                          Text('ID: ${widget.rideData?['displayId'] ?? widget.rideData?['id'] ?? 'N/A'}', style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12)),
                         ],
                       ),
                       const Spacer(),

@@ -157,6 +157,16 @@ class _AdminActiveRidesTabState extends State<AdminActiveRidesTab> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Text('ID: ${ride['displayId'] ?? ride['id']}', style: const TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text(
+                          '₹${ride['estimatedFare'] ?? '---'}',
+                          style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -168,10 +178,6 @@ class _AdminActiveRidesTabState extends State<AdminActiveRidesTab> {
                             ride['status'] ?? 'ALLOTTED',
                             style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                           ),
-                        ),
-                        Text(
-                          '₹${ride['estimatedFare'] ?? '---'}',
-                          style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 18),
                         ),
                       ],
                     ),
@@ -303,6 +309,16 @@ class _AdminActiveRidesTabState extends State<AdminActiveRidesTab> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Text('ID: ${ride['displayId'] ?? ride['id']}', style: const TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(
+                            '₹${ride['finalFare'] ?? ride['estimatedFare'] ?? '---'}',
+                            style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
@@ -314,10 +330,6 @@ class _AdminActiveRidesTabState extends State<AdminActiveRidesTab> {
                               'COMPLETED',
                               style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                             ),
-                          ),
-                          Text(
-                            '₹${ride['fare'] ?? ride['estimatedFare'] ?? '---'}',
-                            style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 18),
                           ),
                         ],
                       ),

@@ -296,11 +296,12 @@ const updateRideStatus = async (req, res) => {
           });
 
           await db.query(
-            `INSERT INTO rides_history (ride_id, customer_uid, driver_uid, status, fare, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, scheduled_time, payment_method, driver_eta_time, driver_arrival_time, ride_start_time, customer_wait_penalty, driver_late_penalty) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+            `INSERT INTO rides_history (ride_id, display_id, customer_uid, driver_uid, status, fare, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, scheduled_time, payment_method, driver_eta_time, driver_arrival_time, ride_start_time, customer_wait_penalty, driver_late_penalty) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
              ON CONFLICT (ride_id) DO UPDATE SET status = EXCLUDED.status, payment_method = EXCLUDED.payment_method`,
             [
               rideId, 
+              r.displayId || null,
               r.uid || 'anonymous', 
               r.assignedDriverId || 'unknown', 
               status, 

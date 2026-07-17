@@ -12,6 +12,7 @@ import '../core/api_constants.dart';
 import 'admin_dashboard_screen.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
 
+import 'package:flutter/services.dart';
 
 class AdminDispatchTab extends StatefulWidget {
   const AdminDispatchTab({super.key});
@@ -20,8 +21,9 @@ class AdminDispatchTab extends StatefulWidget {
   State<AdminDispatchTab> createState() => _AdminDispatchTabState();
 }
 
-class _AdminDispatchTabState extends State<AdminDispatchTab> {
+class _AdminDispatchTabState extends State<AdminDispatchTab> with WidgetsBindingObserver {
   bool _isLoading = true;
+  bool _isFirstFetchCompleted = false;
   List<dynamic> _pendingRides = [];
   List<Map<String, String>> _availableDrivers = [];
   Timer? _pollingTimer;
@@ -30,6 +32,8 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     _fetchPendingRides(silent: false);
     _fetchAvailableDrivers();
     // Start polling timer
@@ -38,9 +42,23 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
     });
   }
 
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.audioVolumeDown ||
+          event.logicalKey == LogicalKeyboardKey.audioVolumeUp) {
+        FlutterRingtonePlayer().stop();
+        return false;
+      }
+    }
+    return false;
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     _pollingTimer?.cancel();
+    FlutterRingtonePlayer().stop();
     super.dispose();
   }
 
@@ -98,16 +116,22 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
               final String id = ride['id'].toString();
               if (!_knownRideIds.contains(id)) {
                 _knownRideIds.add(id);
-                // Only trigger alarm on silent (polling) fetches to avoid ringing on initial load
-                if (silent) {
+                // Only trigger alarm if we already completed the initial fetch
+                if (_isFirstFetchCompleted) {
                   hasNewRide = true;
                 }
               }
             }
+            _isFirstFetchCompleted = true;
           });
           
           if (hasNewRide) {
-            FlutterRingtonePlayer().playAlarm();
+            FlutterRingtonePlayer().play(
+              fromAsset: "assets/sounds/booking_alert.wav",
+              looping: true,
+              asAlarm: true,
+              volume: 1.0,
+            );
           }
         }
       } else {
@@ -363,11 +387,13 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
           )
         ],
       ),
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(
-                child:
-                    CircularProgressIndicator(color: AppTheme.primaryContainer))
+      body: Listener(
+        onPointerDown: (_) => FlutterRingtonePlayer().stop(),
+        child: SafeArea(
+          child: _isLoading
+              ? const Center(
+                  child:
+                      CircularProgressIndicator(color: AppTheme.primaryContainer))
             : _pendingRides.isEmpty
                 ? const Center(
                     child: Text(
@@ -416,6 +442,25 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
+                                      Text(
+                                        'ID: ${ride['displayId'] ?? ride['id']}',
+                                        style: const TextStyle(
+                                            color: AppTheme.onSurface,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14),
+                                      ),
+                                      Text(
+                                        '₹${ride['estimatedFare'] ?? '---'}',
+                                        style: const TextStyle(
+                                            color: AppTheme.primaryContainer,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 6),
@@ -435,13 +480,6 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
                                             letterSpacing: 1.5,
                                           ),
                                         ),
-                                      ),
-                                      Text(
-                                        '₹${ride['estimatedFare'] ?? '---'}',
-                                        style: const TextStyle(
-                                            color: AppTheme.primaryContainer,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18),
                                       ),
                                     ],
                                   ),
@@ -547,6 +585,7 @@ class _AdminDispatchTabState extends State<AdminDispatchTab> {
                       },
                     ),
                   ),
+        ),
       ),
     );
   }

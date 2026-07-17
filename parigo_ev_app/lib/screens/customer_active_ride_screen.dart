@@ -277,6 +277,7 @@ class _CustomerActiveRideScreenState extends State<CustomerActiveRideScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(widget.rideData['driver_name'] ?? 'Your Driver', style: Theme.of(context).textTheme.headlineSmall),
+                          Text('ID: ${widget.rideData['displayId'] ?? widget.rideData['id'] ?? 'N/A'}', style: const TextStyle(color: AppTheme.onSurfaceVariant)),
                           const Text('Parigo EV Pilot', style: TextStyle(color: AppTheme.onSurfaceVariant)),
                         ],
                       ),

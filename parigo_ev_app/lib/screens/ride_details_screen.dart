@@ -8,6 +8,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'dart:typed_data';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
@@ -95,7 +97,8 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
     
     // Fallbacks
     final dateStr = _formatDate(widget.ride['createdAt']);
-    final amount = double.tryParse(widget.ride['fare']?.toString() ?? '0') ?? 0.0;
+    final fareStr = widget.ride['finalFare']?.toString() ?? widget.ride['estimatedFare']?.toString() ?? '0';
+    final amount = double.tryParse(fareStr) ?? 0.0;
     final gst = double.tryParse(widget.ride['gstAmount']?.toString() ?? '0') ?? (amount * 0.05); // Estimate 5% if missing
     final base = double.tryParse(widget.ride['baseFare']?.toString() ?? '0') ?? (amount - gst);
     
@@ -122,7 +125,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('Ride ID: ${widget.ride['id']}'),
+                        pw.Text('Ride ID: ${widget.ride['displayId'] ?? widget.ride['id']}'),
                         pw.Text('Date: $dateStr'),
                         pw.Text('Payment Method: ${widget.ride['paymentMethod'] ?? 'CASH'}'),
                         if (widget.ride['transactionId'] != null)
@@ -143,8 +146,8 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                 // Route
                 pw.Text('Route Summary', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 8),
-                pw.Text('Pickup: ${_pickup?['address'] ?? 'Unknown'}'),
-                pw.Text('Dropoff: ${_dropoff?['address'] ?? 'Unknown'}'),
+                pw.Text('Pickup: ${_pickup?['description'] ?? _pickup?['address'] ?? 'Unknown'}'),
+                pw.Text('Dropoff: ${_dropoff?['description'] ?? _dropoff?['address'] ?? 'Unknown'}'),
                 pw.SizedBox(height: 20),
                 
                 // Fare Table
@@ -245,7 +248,12 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   polylines: _polylines,
                   onMapCreated: (controller) => _mapController = controller,
                   myLocationButtonEnabled: false,
-                  zoomControlsEnabled: false,
+                  zoomControlsEnabled: true,
+                  zoomGesturesEnabled: true,
+                  scrollGesturesEnabled: true,
+                  gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                    Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                  },
                 ),
               ),
 
@@ -287,7 +295,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                               children: [
                                 const Icon(Icons.my_location, color: Colors.green, size: 20),
                                 const SizedBox(width: 12),
-                                Expanded(child: Text(p?['address'] ?? 'Unknown Pickup', style: const TextStyle(color: AppTheme.onSurface))),
+                                Expanded(child: Text(p?['description'] ?? p?['address'] ?? 'Unknown Pickup', style: const TextStyle(color: AppTheme.onSurface))),
                               ],
                             ),
                             Padding(
@@ -298,7 +306,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                               children: [
                                 const Icon(Icons.location_on, color: Colors.red, size: 20),
                                 const SizedBox(width: 12),
-                                Expanded(child: Text(d?['address'] ?? 'Unknown Dropoff', style: const TextStyle(color: AppTheme.onSurface))),
+                                Expanded(child: Text(d?['description'] ?? d?['address'] ?? 'Unknown Dropoff', style: const TextStyle(color: AppTheme.onSurface))),
                               ],
                             ),
                           ],
@@ -327,11 +335,11 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            _buildTimelineRow('Booked At', _formatDate(widget.ride['scheduledTime'])),
+                            _buildTimelineRow('Booked At', _formatDate(widget.ride['createdAt'])),
                             const Divider(color: AppTheme.surfaceContainerHighest),
-                            _buildTimelineRow('Picked Up', _formatDate(widget.ride['rideStartTime'])),
+                            _buildTimelineRow('Picked Up', _formatDate(widget.ride['rideStartTime'] ?? widget.ride['createdAt'])),
                             const Divider(color: AppTheme.surfaceContainerHighest),
-                            _buildTimelineRow('Dropped Off', _formatDate(widget.ride['createdAt'])),
+                            _buildTimelineRow('Dropped Off', _formatDate(widget.ride['completedAt'] ?? widget.ride['updatedAt'] ?? widget.ride['createdAt'])),
                           ],
                         ),
                       ),
@@ -347,7 +355,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            _buildTimelineRow('Total Fare', '₹${widget.ride['fare']}'),
+                            _buildTimelineRow('Total Fare', '₹${widget.ride['finalFare'] ?? widget.ride['estimatedFare'] ?? '0.00'}'),
                             const Divider(color: AppTheme.surfaceContainerHighest),
                             _buildTimelineRow('Payment Mode', widget.ride['paymentMethod'] ?? 'N/A'),
                             if (widget.ride['transactionId'] != null) ...[
@@ -355,7 +363,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                               _buildTimelineRow('Transaction ID', widget.ride['transactionId']),
                             ],
                             const Divider(color: AppTheme.surfaceContainerHighest),
-                            _buildTimelineRow('Ride ID', widget.ride['id'] ?? 'N/A'),
+                            _buildTimelineRow('Ride ID', widget.ride['displayId'] ?? widget.ride['id'] ?? 'N/A'),
                           ],
                         ),
                       ),

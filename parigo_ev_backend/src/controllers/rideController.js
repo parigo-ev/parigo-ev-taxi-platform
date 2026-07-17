@@ -12,9 +12,11 @@ const createRide = async (req, res) => {
     
     // Default to 'CASH' if paymentMethod is undefined or null
     const finalPaymentMethod = paymentMethod || 'CASH';
+    const displayId = 'PEV-' + Math.floor(100000 + Math.random() * 900000).toString();
 
     await rideRef.set({
       uid: uid,
+      displayId: displayId,
       pickup: pickup,
       destination: destination,
       scheduledTime: scheduledTime || null,
@@ -94,6 +96,7 @@ const getHistory = async (req, res) => {
     const rides = ridesRes.rows.map(row => {
       return {
         id: row.ride_id,
+        displayId: row.display_id,
         uid: row.customer_uid,
         assignedDriverId: row.driver_uid,
         status: row.status,
@@ -327,10 +330,12 @@ const scheduleRide = async (req, res) => {
     const scheduledDateStr = `${dartWeekdays[jsDay]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}`;
 
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    const displayId = 'PEV-' + Math.floor(100000 + Math.random() * 900000).toString();
     const rideRef = admin.firestore().collection('rides').doc();
 
     const ridePayload = {
       uid: uid,
+      displayId: displayId,
       pickup: pickup,
       destination: destination,
       scheduledTime: scheduledTime,
