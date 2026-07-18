@@ -7,6 +7,7 @@ import 'admin_fleet_tab.dart';
 import 'admin_customers_tab.dart';
 import 'admin_settings_tab.dart';
 import 'admin_feedback_tab.dart';
+import 'admin_driver_feedback_tab.dart';
 import 'admin_reports_tab.dart';
 import '../widgets/admin_drawer.dart';
 
@@ -32,6 +33,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     const AdminFeedbackTab(),
     const AdminSettingsTab(),
     const AdminReportsTab(),
+    const AdminDriverFeedbackTab(),
   ];
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();

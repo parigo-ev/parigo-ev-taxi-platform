@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'driver_home_tab.dart';
-import 'driver_map_tab.dart';
 import 'driver_earnings_tab.dart';
 import 'driver_profile_tab.dart';
 import '../widgets/glass_card.dart';
@@ -213,7 +212,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
         isOnline: _isOnline,
         onToggleOnline: _toggleOnline,
       ),
-      const DriverMapTab(),
       const DriverEarningsTab(),
       const DriverProfileTab(),
     ];
@@ -287,7 +285,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
 
           // Bottom Nav
           Positioned(
-            bottom: 56,
+            bottom: MediaQuery.of(context).padding.bottom + 24,
             left: 24,
             right: 24,
             child: GlassCard(
@@ -296,9 +294,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Widg
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildNavItem(0, Icons.home),
-                  _buildNavItem(1, Icons.map),
-                  _buildNavItem(2, Icons.account_balance_wallet),
-                  _buildNavItem(3, Icons.person),
+                  _buildNavItem(1, Icons.account_balance_wallet),
+                  _buildNavItem(2, Icons.person),
                 ],
               ),
             ),

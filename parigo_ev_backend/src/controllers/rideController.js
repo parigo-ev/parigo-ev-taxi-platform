@@ -392,6 +392,19 @@ const getCustomerRides = async (req, res) => {
       rides.push({ id: doc.id, ...doc.data() });
     });
 
+    for (let ride of rides) {
+      if (ride.assignedDriverId) {
+        try {
+           const result = await db.query('SELECT name, phone, vehicle_type, profile_picture_url FROM drivers WHERE driver_uid = $1', [ride.assignedDriverId]);
+           if (result.rows.length > 0) {
+             ride.driverDetails = result.rows[0];
+           }
+        } catch (err) {
+           console.error('Error fetching driver details for customer ride:', err);
+        }
+      }
+    }
+
     // Sort in memory to avoid needing a composite index in Firestore
     rides.sort((a, b) => {
       if (!a.createdAt || !b.createdAt) return 0;

@@ -590,7 +590,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (widget.role == 'Admin') {
           title = 'Welcome to Admin Panel';
         } else {
-          title = 'Welcome Back Indorians';
+          title = 'Welcome to Parigo EV';
         }
         subtitle = 'Enter your mobile number to ignite.';
         break;

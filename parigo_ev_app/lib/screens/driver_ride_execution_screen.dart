@@ -432,15 +432,40 @@ class _DriverRideExecutionScreenState extends State<DriverRideExecutionScreen> w
           _updateMap();
           _updateRideStatus('COMPLETED');
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => FeedbackScreen(
-                      role: 'Driver',
-                      rideId: widget.rideData?['id']?.toString() ?? 'unknown',
-                      otherPartyName:
-                          widget.rideData?['customerName'] ?? 'Customer',
-                    )),
+          String paymentMethod = widget.rideData?['paymentMethod']?.toString().toUpperCase() ?? 'PREPAID';
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              backgroundColor: AppTheme.surfaceContainerHigh,
+              title: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.greenAccent),
+                  const SizedBox(width: 8),
+                  Text('Payment Done', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+                ],
+              ),
+              content: Text('Customer prepaid via $paymentMethod.', style: const TextStyle(color: AppTheme.onSurface)),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => FeedbackScreen(
+                                role: 'Driver',
+                                rideId: widget.rideData?['id']?.toString() ?? 'unknown',
+                                otherPartyName:
+                                    widget.rideData?['customerName'] ?? 'Customer',
+                              )),
+                    );
+                  },
+                  child: const Text('OK'),
+                )
+              ],
+            )
           );
         } else {
           // Change to pending payment
@@ -475,31 +500,76 @@ class _DriverRideExecutionScreenState extends State<DriverRideExecutionScreen> w
     _paymentPollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (widget.rideData == null) return;
       try {
-        // We can fetch the ride document from Firestore directly to check status
-        // But we don't have firestore imported here. Let's create a quick API call if needed,
-        // or just use the driver assigned rides endpoint to find this ride.
         final uid = UserSession().uid;
         final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/driver/rides/assigned?driverId=$uid'));
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           final rides = data['rides'] as List;
-          final thisRide = rides.firstWhere((r) => r['id'] == widget.rideData!['id'], orElse: () => null);
+          var thisRide = rides.firstWhere((r) => r['id'] == widget.rideData!['id'], orElse: () => null);
           
-          // If ride is gone from assigned (because it's completed) or status is COMPLETED
-          if (thisRide == null || thisRide['status'] == 'COMPLETED') {
+          if (thisRide == null) {
+            // It might be in completed history now
+            final histResponse = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/driver/rides/history?driverId=$uid'));
+            if (histResponse.statusCode == 200) {
+               final histData = jsonDecode(histResponse.body);
+               final histRides = histData['rides'] as List;
+               thisRide = histRides.firstWhere((r) => r['id'] == widget.rideData!['id'], orElse: () => null);
+            }
+          }
+
+          if (thisRide != null && thisRide['status'] == 'COMPLETED') {
             timer.cancel();
             if (mounted) {
               Navigator.pop(context); // Close waiting dialog
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => FeedbackScreen(
-                          role: 'Driver',
-                          rideId: widget.rideData?['id']?.toString() ?? 'unknown',
-                          otherPartyName:
-                              widget.rideData?['customerName'] ?? 'Customer',
-                        )),
-              );
+              
+              String paymentMethod = thisRide['paymentMethod']?.toString().toUpperCase() ?? '';
+              
+              if (paymentMethod != 'CASH' && paymentMethod != 'PAY_LATER') {
+                 // Show payment done popup for UPI / Wallet
+                 showDialog(
+                   context: context,
+                   barrierDismissible: false,
+                   builder: (context) => AlertDialog(
+                     backgroundColor: AppTheme.surfaceContainerHigh,
+                     title: Row(
+                       children: [
+                         const Icon(Icons.check_circle, color: Colors.greenAccent),
+                         const SizedBox(width: 8),
+                         Text('Payment Done', style: GoogleFonts.nunito(color: AppTheme.primaryContainer)),
+                       ],
+                     ),
+                     content: Text('Customer paid via $paymentMethod.', style: const TextStyle(color: AppTheme.onSurface)),
+                     actions: [
+                       TextButton(
+                         onPressed: () {
+                           Navigator.pop(context);
+                           Navigator.pushReplacement(
+                             context,
+                             MaterialPageRoute(
+                                 builder: (context) => FeedbackScreen(
+                                       role: 'Driver',
+                                       rideId: widget.rideData?['id']?.toString() ?? 'unknown',
+                                       otherPartyName: widget.rideData?['customerName'] ?? 'Customer',
+                                     )),
+                           );
+                         },
+                         child: const Text('OK'),
+                       )
+                     ],
+                   )
+                 );
+              } else {
+                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ride Completed (Cash)'), backgroundColor: Colors.green));
+                 Navigator.pushReplacement(
+                   context,
+                   MaterialPageRoute(
+                       builder: (context) => FeedbackScreen(
+                             role: 'Driver',
+                             rideId: widget.rideData?['id']?.toString() ?? 'unknown',
+                             otherPartyName: widget.rideData?['customerName'] ?? 'Customer',
+                           )),
+                 );
+              }
             }
           }
         }

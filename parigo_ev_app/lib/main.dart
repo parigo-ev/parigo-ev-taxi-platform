@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'core/language_provider.dart';
+import 'services/admin_background_service.dart';
 
 void _reportCrashToAdmin(dynamic error, StackTrace? stack) {
   try {
@@ -46,6 +47,9 @@ void main() async {
 
   // Initialize Deep Link Handler
   DeepLinkHandler().initAppLinks();
+
+  // Initialize Background Service
+  await initializeBackgroundService();
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics and Admin
   FlutterError.onError = (FlutterErrorDetails details) {

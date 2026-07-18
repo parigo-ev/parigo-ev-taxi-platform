@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import 'report_issue_screen.dart';
 import 'legal_policies_screen.dart';
+import '../core/user_session.dart';
 
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
@@ -137,69 +138,162 @@ class SupportScreen extends StatelessWidget {
                       color: AppTheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               
-              // FAQS - BOOKING & RIDES
-              Text('Booking & Rides', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 8),
-              GlassCard(
-                child: Column(
-                  children: [
-                    _buildFAQItem(context,
-                      'How do I schedule a ride?',
-                      'On the home screen, tap "Schedule a Ride", select your pickup/dropoff locations, and pick your preferred date and time.',
-                    ),
-                    const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(context,
-                      'What happens if my driver doesn\'t arrive?',
-                      'If your driver doesn\'t arrive within 15 minutes of your scheduled time, you can cancel without any penalty and we will assist in rebooking.',
-                    ),
-                    const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(context,
-                      'Can I change my destination?',
-                      'Currently, destinations must be fixed at the time of booking to ensure accurate range calculations for our EVs.',
-                    ),
-                  ],
+              // FAQS
+              if (UserSession().role == 'Driver') ...[
+                Text('Salary & Operations', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                GlassCard(
+                  child: Column(
+                    children: [
+                      _buildFAQItem(context,
+                        'How and when do I receive my salary?',
+                        'All drivers are on a fixed monthly salary basis. Your salary is credited directly to your linked bank account at the end of each billing cycle. You do not need to manage a digital wallet for your personal earnings within the app.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'What should I do with cash collected from customers?',
+                        'Any cash fares collected from customers during your shift belong to the company. Please submit all cash collections to the admin hub at the end of your shift as per standard company policy.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'Why does my Daily Earning reset to zero?',
+                        'To help you and the admin track your daily productivity, your "Daily Earning" (representing company revenue you generated) and "Rides Completed" counters automatically reset to zero every day at 12:00 AM.',
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              
-              const SizedBox(height: 24),
-              // FAQS - PAYMENTS & WALLET
-              Text('Payments & Wallet', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 8),
-              GlassCard(
-                child: Column(
-                  children: [
-                    _buildFAQItem(context,
-                      'How do refunds work?',
-                      'Refunds for cancelled rides or disputes will be credited to your Parigo Wallet instantly, or sent to your original payment method within 3-5 business days.',
-                    ),
-                    const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(context,
-                      'How do I apply a coupon?',
-                      'During the booking process, tap on the "Apply Coupon" section before confirming the ride to enter your promo code.',
-                    ),
-                  ],
+                
+                const SizedBox(height: 24),
+                Text('Ride Rules & Safety', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                GlassCard(
+                  child: Column(
+                    children: [
+                      _buildFAQItem(context,
+                        'Can a customer change their drop-off location during the trip?',
+                        'No. To ensure accurate scheduling and battery management, mid-trip drop-off location changes are not permitted. Please complete the trip to the originally booked destination.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'How are penalties calculated if I am late for a pickup?',
+                        'Punctuality is strictly monitored. If you arrive more than 3 minutes after the provided ETA, a late penalty is recorded on your shift. Consistent late arrivals may impact your monthly performance review.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'What should I do if my EV battery runs critically low?',
+                        'Always monitor your battery percentage on the dashboard. If an emergency occurs mid-trip, safely pull over, inform the customer, and contact Parigo EV support immediately to arrange a backup vehicle.',
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                
+                const SizedBox(height: 24),
+                Text('Vehicle & Maintenance', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                GlassCard(
+                  child: Column(
+                    children: [
+                      _buildFAQItem(context,
+                        'Where and when should I charge the EV?',
+                        'Vehicles should be charged at designated Parigo EV hubs or approved charging stations between shifts or during approved downtimes. Do not attempt to charge the vehicle at unauthorized locations.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'What should I do if the EV has a mechanical issue or breakdown?',
+                        'Do not attempt to repair the vehicle yourself. Tap the "SOS" or "Report Issue" button immediately to inform the support team, and wait for a maintenance unit to arrive.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'Am I responsible for cleaning the vehicle?',
+                        'Yes. Drivers are expected to keep both the interior and exterior of the vehicle clean and sanitized. A clean car ensures a 5-star experience for our customers.',
+                      ),
+                    ],
+                  ),
+                ),
 
-              const SizedBox(height: 24),
-              // FAQS - EV & SAFETY
-              Text('Safety & EVs', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 8),
-              GlassCard(
-                child: Column(
-                  children: [
-                    _buildFAQItem(context,
-                      'What if the EV runs out of charge during my trip?',
-                      'Our system ensures drivers have enough range before they are dispatched. If an issue occurs, a backup cab is dispatched immediately at no extra cost.',
-                    ),
-                    const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
-                    _buildFAQItem(context,
-                      'Are the EVs sanitized?',
-                      'Yes! All our fleet vehicles undergo rigorous sanitization before and after every ride.',
-                    ),
-                  ],
+                const SizedBox(height: 24),
+                Text('Customer Interactions', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                GlassCard(
+                  child: Column(
+                    children: [
+                      _buildFAQItem(context,
+                        'What if a customer damages the vehicle or is abusive?',
+                        'Your safety is our priority. Do not engage in an argument. Pull over safely if necessary, use the SOS button, and report the passenger through the app immediately.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'Am I allowed to pick up offline passengers (street hails)?',
+                        'No. For safety and insurance reasons, you must only pick up passengers assigned to you through the Parigo EV app. Unauthorized street rides are strictly prohibited.',
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ] else ...[
+                // FAQS - BOOKING & RIDES
+                Text('Booking & Rides', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                GlassCard(
+                  child: Column(
+                    children: [
+                      _buildFAQItem(context,
+                        'How do I schedule a ride?',
+                        'On the home screen, tap "Schedule a Ride", select your pickup/dropoff locations, and pick your preferred date and time.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'What happens if my driver doesn\'t arrive?',
+                        'If your driver doesn\'t arrive within 15 minutes of your scheduled time, you can cancel without any penalty and we will assist in rebooking.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'Can I change my destination?',
+                        'Currently, destinations must be fixed at the time of booking to ensure accurate range calculations for our EVs.',
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                // FAQS - PAYMENTS & WALLET
+                Text('Payments & Wallet', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                GlassCard(
+                  child: Column(
+                    children: [
+                      _buildFAQItem(context,
+                        'How do refunds work?',
+                        'Refunds for cancelled rides or disputes will be credited to your Parigo Wallet instantly, or sent to your original payment method within 3-5 business days.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'How do I apply a coupon?',
+                        'During the booking process, tap on the "Apply Coupon" section before confirming the ride to enter your promo code.',
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+                // FAQS - EV & SAFETY
+                Text('Safety & EVs', style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                GlassCard(
+                  child: Column(
+                    children: [
+                      _buildFAQItem(context,
+                        'What if the EV runs out of charge during my trip?',
+                        'Our system ensures drivers have enough range before they are dispatched. If an issue occurs, a backup cab is dispatched immediately at no extra cost.',
+                      ),
+                      const Divider(color: AppTheme.surfaceContainerHighest, height: 1),
+                      _buildFAQItem(context,
+                        'Are the EVs sanitized?',
+                        'Yes! All our fleet vehicles undergo rigorous sanitization before and after every ride.',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               
               const SizedBox(height: 40),
               

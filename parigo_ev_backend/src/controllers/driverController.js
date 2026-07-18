@@ -218,15 +218,23 @@ const getHistoryRides = async (req, res) => {
 
 const getEarnings = async (req, res) => {
   try {
-    const { driverId } = req.query;
+    const { driverId, date } = req.query;
     if (!driverId) return res.status(400).json({ error: 'driverId required' });
 
-    const result = await db.query(
-      `SELECT fare, scheduled_time FROM rides_history 
-       WHERE driver_uid = $1 AND status = 'COMPLETED' 
-       ORDER BY scheduled_time DESC`,
-      [driverId]
-    );
+    let query = `SELECT fare, scheduled_time FROM rides_history 
+                 WHERE driver_uid = $1 AND status = 'COMPLETED'`;
+    let params = [driverId];
+
+    if (date) {
+      query += ` AND DATE(scheduled_time AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = $2`;
+      params.push(date);
+    } else {
+      query += ` AND DATE(scheduled_time AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = CURRENT_DATE`;
+    }
+
+    query += ` ORDER BY scheduled_time DESC`;
+
+    const result = await db.query(query, params);
 
     let totalFare = 0;
     result.rows.forEach(r => totalFare += parseFloat(r.fare || 0));
@@ -235,7 +243,7 @@ const getEarnings = async (req, res) => {
       success: true,
       total_balance: totalFare.toFixed(2),
       rides_today: result.rows.length,
-      hours_online: 6.5, // Mock for now
+      hours_online: 0.0,
       recent_trips: result.rows.map(r => ({
         title: 'Completed Ride',
         amount: `₹${r.fare}`,

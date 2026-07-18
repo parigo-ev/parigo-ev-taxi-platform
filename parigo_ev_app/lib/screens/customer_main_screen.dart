@@ -44,7 +44,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
 
           // Persistent Floating Nav Bar
           Positioned(
-            bottom: 56,
+            bottom: MediaQuery.of(context).padding.bottom + 24,
             left: 24,
             right: 24,
             child: GlassCard(
@@ -53,7 +53,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildNavItem(icon: Icons.home, index: 0),
-                  _buildNavItem(icon: Icons.history, index: 1),
+                  _buildNavItem(icon: Icons.electric_car, index: 1),
                   _buildNavItem(icon: Icons.account_balance_wallet, index: 2),
                   _buildNavItem(icon: Icons.person, index: 3),
                 ],

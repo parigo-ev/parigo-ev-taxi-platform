@@ -92,7 +92,7 @@ class _DriverEarningsTabState extends State<DriverEarningsTab> {
                     Icon(Icons.account_balance_wallet,
                         color: AppTheme.primaryContainer),
                     SizedBox(width: 8),
-                    Text('Available Balance',
+                    Text('Daily Earning',
                         style: TextStyle(
                             color: AppTheme.onSurfaceVariant, fontSize: 16)),
                   ],
@@ -114,28 +114,6 @@ class _DriverEarningsTabState extends State<DriverEarningsTab> {
                               color: AppTheme.onSurfaceVariant, fontSize: 24)),
                   ],
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          AppTheme.primaryContainer.withOpacity(0.2),
-                      foregroundColor: AppTheme.primaryContainer,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(
-                            color: AppTheme.primaryContainer, width: 1),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('WITHDRAW FUNDS',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, letterSpacing: 1.5)),
-                  ),
-                )
               ],
             ),
           ),

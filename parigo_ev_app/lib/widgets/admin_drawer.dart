@@ -159,6 +159,14 @@ class _AdminDrawerState extends State<AdminDrawer> {
             ),
             _buildMenuItem(
               context,
+              icon: Icons.stars,
+              title: 'Driver Feedback',
+              index: 8,
+              currentIndex: currentIndex,
+              dashboardState: dashboardState,
+            ),
+            _buildMenuItem(
+              context,
               icon: Icons.report_problem,
               title: 'Reports & Issues',
               index: 7,

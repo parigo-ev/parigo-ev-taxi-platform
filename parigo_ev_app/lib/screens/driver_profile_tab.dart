@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../core/language_provider.dart';
 import 'driver_feedback_screen.dart';
-import 'wallet_screen.dart';
+import 'driver_earnings_history_screen.dart';
 
 class DriverProfileTab extends StatefulWidget {
   const DriverProfileTab({super.key});
@@ -227,7 +227,7 @@ class _DriverProfileTabState extends State<DriverProfileTab> {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                _buildListTile(Icons.account_balance_wallet, l10n.walletAndEarnings, context, const WalletScreen()),
+                _buildListTile(Icons.calendar_month, 'Earnings History', context, const DriverEarningsHistoryScreen()),
                 const Divider(color: AppTheme.outline, height: 1),
                 _buildListTile(Icons.history, l10n.tripHistory, context, const TripHistoryScreen(role: 'Driver')),
                 const Divider(color: AppTheme.outline, height: 1),

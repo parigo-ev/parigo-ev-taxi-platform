@@ -564,45 +564,7 @@ class _ScheduledRidesScreenState extends State<ScheduledRidesScreen> {
                                                   letterSpacing: 1.2)),
                                         ),
                                       ),
-                                      if (ride['status'] == 'CONFIRMED') ...[
-                                        const SizedBox(height: 12),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.green,
-                                              foregroundColor: Colors.white,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          12)),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 12),
-                                            ),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        FeedbackScreen(
-                                                          role: 'Customer',
-                                                          rideId: ride['id'] ??
-                                                              'mock_ride_123',
-                                                          otherPartyName: ride[
-                                                                  'driver_name'] ??
-                                                              'Driver',
-                                                        )),
-                                              );
-                                            },
-                                            child: const Text(
-                                                'MOCK COMPLETE RIDE (TEST FEEDBACK)',
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                          ),
-                                        ),
-                                      ]
+
                                     ]
                                   ],
                                 ),

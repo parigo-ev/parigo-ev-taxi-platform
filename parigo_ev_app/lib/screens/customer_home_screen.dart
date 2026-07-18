@@ -452,7 +452,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
               },
             ),
             ListTile(
-              leading: const Icon(Icons.calendar_today,
+              leading: const Icon(Icons.electric_car,
                   color: AppTheme.onSurfaceVariant),
               title: const Text('Scheduled Rides',
                   style: TextStyle(color: AppTheme.onSurface)),
