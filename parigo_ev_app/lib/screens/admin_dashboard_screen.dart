@@ -10,6 +10,7 @@ import 'admin_feedback_tab.dart';
 import 'admin_driver_feedback_tab.dart';
 import 'admin_reports_tab.dart';
 import '../widgets/admin_drawer.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -37,6 +38,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   ];
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _startBackgroundService();
+  }
+
+  Future<void> _startBackgroundService() async {
+    final service = FlutterBackgroundService();
+    var isRunning = await service.isRunning();
+    if (!isRunning) {
+      service.startService();
+    }
+  }
 
   int get currentIndex => _currentIndex;
 

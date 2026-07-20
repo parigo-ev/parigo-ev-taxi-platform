@@ -73,7 +73,7 @@ class _DriverEarningsHistoryScreenState extends State<DriverEarningsHistoryScree
       final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
       final response = await ApiClient.get(
-        Uri.parse('\${ApiConstants.baseUrl}/driver/earnings?driverId=\$uid&date=\$dateStr'),
+        Uri.parse('${ApiConstants.baseUrl}/driver/earnings?driverId=$uid&date=$dateStr'),
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
@@ -88,7 +88,7 @@ class _DriverEarningsHistoryScreenState extends State<DriverEarningsHistoryScree
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      print('Error fetching earnings history: \$e');
+      print('Error fetching earnings history: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -170,7 +170,7 @@ class _DriverEarningsHistoryScreenState extends State<DriverEarningsHistoryScree
                               children: [
                                 const Text('Completed Rides', style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12)),
                                 const SizedBox(height: 8),
-                                Text('\$_ridesToday', style: Theme.of(context).textTheme.headlineMedium),
+                                Text('$_ridesToday', style: Theme.of(context).textTheme.headlineMedium),
                               ],
                             ),
                           ],
@@ -216,7 +216,7 @@ class _DriverEarningsHistoryScreenState extends State<DriverEarningsHistoryScree
                                 subtitle: Text(tx['time'] ?? '',
                                     style: const TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12)),
                                 trailing: Text(
-                                  '\${tx['amount']}',
+                                  "₹${tx['amount']}",
                                   style: const TextStyle(
                                     color: Colors.greenAccent,
                                     fontWeight: FontWeight.bold,
