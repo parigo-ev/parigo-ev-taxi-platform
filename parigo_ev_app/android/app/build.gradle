@@ -9,6 +9,11 @@ plugins {
 import java.util.Properties
 import java.io.FileInputStream
 
+// ---------------------------------------------------------
+// Android signing configuration
+// key.properties is created by GitHub Actions during CI/CD
+// ---------------------------------------------------------
+
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file("key.properties")
 
@@ -39,14 +44,23 @@ android {
         versionName = flutter.versionName
     }
 
+    // ---------------------------------------------------------
+    // Release signing
+    // ---------------------------------------------------------
     signingConfigs {
         release {
-            keyAlias = keystoreProperties["keyAlias"]
-            keyPassword = keystoreProperties["keyPassword"]
-            storeFile = keystoreProperties["storeFile"] != null
-                    ? file(keystoreProperties["storeFile"])
-                    : null
-            storePassword = keystoreProperties["storePassword"]
+            if (keystorePropertiesFile.exists()) {
+
+                keyAlias = keystoreProperties["keyAlias"]
+                keyPassword = keystoreProperties["keyPassword"]
+                storePassword = keystoreProperties["storePassword"]
+
+                def storeFilePath = keystoreProperties["storeFile"]
+
+                if (storeFilePath != null && storeFilePath.toString().trim()) {
+                    storeFile = file(storeFilePath)
+                }
+            }
         }
     }
 
