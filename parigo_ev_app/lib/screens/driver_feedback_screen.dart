@@ -6,7 +6,8 @@ import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import '../core/api_constants.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 
 class DriverFeedbackScreen extends StatefulWidget {
   final String driverId;
