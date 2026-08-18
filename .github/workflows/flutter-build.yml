@@ -1,0 +1,39 @@
+name: Build Flutter AAB
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "parigo_ev_app/**"
+      - ".github/workflows/flutter-build.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Check Flutter
+        run: flutter --version
+
+      - name: Get dependencies
+        working-directory: parigo_ev_app
+        run: flutter pub get
+
+      - name: Build Android App Bundle
+        working-directory: parigo_ev_app
+        run: flutter build appbundle --release
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: parigo-ev-app-release
+          path: parigo_ev_app/build/app/outputs/bundle/release/app-release.aab
