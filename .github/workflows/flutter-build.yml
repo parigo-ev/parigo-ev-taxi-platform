@@ -24,6 +24,24 @@ jobs:
       - name: Check Flutter
         run: flutter --version
 
+      - name: Decode Android keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > parigo_ev_app/android/app/parigo-upload-key.jks
+
+      - name: Create key.properties
+        run: |
+          cat > parigo_ev_app/android/key.properties <<EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=app/parigo-upload-key.jks
+          EOF
+
+      - name: Verify signing files
+        run: |
+          ls -lh parigo_ev_app/android/app/parigo-upload-key.jks
+          ls -lh parigo_ev_app/android/key.properties
+
       - name: Get dependencies
         working-directory: parigo_ev_app
         run: flutter pub get
