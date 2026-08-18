@@ -7,15 +7,18 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:727657249341:android:660d62edc2a4e4e21a0854",
+        "mobilesdk_app_id": "1:727657249341:android:4f78246bc5a4de3a1a0854",
         "android_client_info": {
-          "package_name": "com.example.parigo_ev"
+          "package_name": "com.parigo.evapp"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyCv8bQM8rf1Yam10C3ULj_ellJsa3Q4LDw"
+        },
+        {
+          "current_key": "AIzaSyD6XngigyJoUewu7Hgnb5AUBTi8HU5obcE"
         }
       ],
       "services": {
