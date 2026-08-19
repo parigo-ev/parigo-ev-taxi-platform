@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:727657249341:android:4f78246bc5a4de3a1a0854",
+        "mobilesdk_app_id": "1:727657249341:android:39ab2b57ed84e53f1a0854",
         "android_client_info": {
-          "package_name": "com.parigo.evapp"
+          "package_name": "com.parigo.evapp.dev"
         }
       },
       "oauth_client": [],
