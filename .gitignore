@@ -3,3 +3,4 @@ build/
 .dart_tool/
 .env
 parigo_ev_backend/serviceAccountKey.json
+android/app/google-services.json
