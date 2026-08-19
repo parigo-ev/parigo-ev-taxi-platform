@@ -1,39 +1,111 @@
-name: Build Flutter AAB
+name: Build Flutter DEV AAB
 
 on:
   workflow_dispatch:
+
   push:
+    branches:
+      - dev
     paths:
       - "parigo_ev_app/**"
-      - ".github/workflows/flutter-build.yml"
+      - ".github/workflows/flutter-dev-build.yml"
 
 jobs:
   build:
+    name: Build DEV Android App Bundle
     runs-on: ubuntu-latest
 
     steps:
+      # --------------------------------------------------
+      # 1. Checkout
+      # --------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # --------------------------------------------------
+      # 2. Setup Flutter
+      # --------------------------------------------------
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      # --------------------------------------------------
+      # 3. Check Flutter
+      # --------------------------------------------------
       - name: Check Flutter
         run: flutter --version
 
+      # --------------------------------------------------
+      # 4. Create DEV Firebase configuration
+      # --------------------------------------------------
+      - name: Create DEV google-services.json
+        env:
+          FIREBASE_DEV_JSON: ${{ secrets.FIREBASE_DEV_JSON }}
+        run: |
+          printf '%s' "$FIREBASE_DEV_JSON" \
+            > parigo_ev_app/android/app/google-services.json
+
+      # --------------------------------------------------
+      # 5. Decode DEV Android keystore
+      # --------------------------------------------------
+      - name: Decode DEV Android keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode \
+            > parigo_ev_app/android/app/parigo-upload-key.jks
+
+      # --------------------------------------------------
+      # 6. Create key.properties
+      # --------------------------------------------------
+      - name: Create key.properties
+        run: |
+          cat > parigo_ev_app/android/key.properties <<EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=app/parigo-upload-key.jks
+          EOF
+
+      # --------------------------------------------------
+      # 7. Verify configuration files
+      # --------------------------------------------------
+      - name: Verify DEV configuration
+        run: |
+          test -f parigo_ev_app/android/app/google-services.json
+          test -f parigo_ev_app/android/app/parigo-upload-key.jks
+          test -f parigo_ev_app/android/key.properties
+
+          echo "DEV Firebase configuration exists."
+          echo "DEV keystore exists."
+          echo "key.properties exists."
+
+      # --------------------------------------------------
+      # 8. Get dependencies
+      # --------------------------------------------------
       - name: Get dependencies
         working-directory: parigo_ev_app
         run: flutter pub get
 
-      - name: Build Android App Bundle
+      # --------------------------------------------------
+      # 9. Build DEV AAB
+      # --------------------------------------------------
+      - name: Build DEV Android App Bundle
         working-directory: parigo_ev_app
-        run: flutter build appbundle --release
+        env:
+          DEV_API_URL: ${{ secrets.DEV_API_URL }}
+        run: |
+          flutter build appbundle --release \
+            --dart-define=API_BASE_URL="$DEV_API_URL"
 
-      - name: Upload AAB
+      # --------------------------------------------------
+      # 10. Upload AAB
+      # --------------------------------------------------
+      - name: Upload DEV AAB
         uses: actions/upload-artifact@v4
         with:
-          name: parigo-ev-app-release
+          name: parigo-ev-app-dev-release
           path: parigo_ev_app/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
