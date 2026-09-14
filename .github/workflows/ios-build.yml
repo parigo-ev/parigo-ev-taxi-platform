@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - ios-test
-      
   workflow_dispatch:
 
 jobs:
   build-ios:
+    name: Build Flutter iOS
     runs-on: macos-latest
 
     defaults:
@@ -16,29 +16,69 @@ jobs:
         working-directory: parigo_ev_app
 
     steps:
+      # --------------------------------------------------
+      # 1. Checkout GitHub repository
+      # --------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
+      # --------------------------------------------------
+      # 2. Setup Flutter
+      # --------------------------------------------------
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      # --------------------------------------------------
+      # 3. Show versions
+      # --------------------------------------------------
       - name: Flutter version
         run: flutter --version
 
-      - name: Get Flutter dependencies
+      - name: Dart version
+        run: dart --version
+
+      # --------------------------------------------------
+      # 4. Get Flutter packages
+      # --------------------------------------------------
+      - name: Flutter pub get
         run: flutter pub get
 
-      - name: Install CocoaPods
-        run: pod install
+      # --------------------------------------------------
+      # 5. Verify iOS Podfile
+      # --------------------------------------------------
+      - name: Check Podfile
+        run: |
+          echo "Checking iOS Podfile..."
+          test -f ios/Podfile
+          echo "Podfile found:"
+          cat ios/Podfile
+
+      # --------------------------------------------------
+      # 6. Install CocoaPods
+      # --------------------------------------------------
+      - name: Install CocoaPods dependencies
         working-directory: parigo_ev_app/ios
+        run: |
+          pod repo update
+          pod install
 
-      - name: Build iOS
-        run: flutter build ios --release --no-codesign
+      # --------------------------------------------------
+      # 7. Build Flutter iOS
+      # --------------------------------------------------
+      - name: Build Flutter iOS
+        run: |
+          flutter build ios \
+            --release \
+            --no-codesign
 
-      - name: Build Xcode archive
+      # --------------------------------------------------
+      # 8. Create Xcode archive
+      # --------------------------------------------------
+      - name: Create iOS archive
+        working-directory: parigo_ev_app/ios
         run: |
           xcodebuild \
             -workspace Runner.xcworkspace \
@@ -48,10 +88,23 @@ jobs:
             -archivePath $RUNNER_TEMP/Runner.xcarchive \
             archive \
             CODE_SIGNING_ALLOWED=NO
-        working-directory: parigo_ev_app/ios
 
+      # --------------------------------------------------
+      # 9. Upload archive to GitHub
+      # --------------------------------------------------
       - name: Upload iOS archive
         uses: actions/upload-artifact@v4
         with:
-          name: ios-archive
+          name: parigo-ev-ios-archive
           path: ${{ runner.temp }}/Runner.xcarchive
+          retention-days: 7
+
+      # --------------------------------------------------
+      # 10. Upload Flutter build
+      # --------------------------------------------------
+      - name: Upload iOS build
+        uses: actions/upload-artifact@v4
+        with:
+          name: parigo-ev-ios-build
+          path: parigo_ev_app/build/ios/iphoneos/Runner.app
+          retention-days: 7
