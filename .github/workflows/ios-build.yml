@@ -3,12 +3,17 @@ name: Build iOS Flutter App
 on:
   push:
     branches:
-      - ios-test
+      - main
+      - master
   workflow_dispatch:
 
 jobs:
   build-ios:
     runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: parigo_ev_app
 
     steps:
       - name: Checkout repository
@@ -23,18 +28,17 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
-      - name: Get dependencies
+      - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Install CocoaPods dependencies
-        working-directory: ios
+      - name: Install CocoaPods
         run: pod install
+        working-directory: parigo_ev_app/ios
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign
 
-      - name: Build iOS archive
-        working-directory: ios
+      - name: Build Xcode archive
         run: |
           xcodebuild \
             -workspace Runner.xcworkspace \
@@ -44,8 +48,9 @@ jobs:
             -archivePath $RUNNER_TEMP/Runner.xcarchive \
             archive \
             CODE_SIGNING_ALLOWED=NO
+        working-directory: parigo_ev_app/ios
 
-      - name: Upload build artifact
+      - name: Upload iOS archive
         uses: actions/upload-artifact@v4
         with:
           name: ios-archive
