@@ -1,54 +1,80 @@
-platform :ios, '15.0'
+name: Build iOS Flutter App
 
-ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
 
-project 'Runner', {
-  'Debug' => :debug,
-  'Profile' => :release,
-  'Release' => :release,
-}
+jobs:
+  build-ios:
+    name: Build Flutter iOS
+    runs-on: macos-latest
 
-def flutter_root
-  generated_xcode_build_settings_path = File.expand_path(
-    File.join('..', 'Flutter', 'Generated.xcconfig'),
-    __FILE__
-  )
+    defaults:
+      run:
+        working-directory: parigo_ev_app
 
-  unless File.exist?(generated_xcode_build_settings_path)
-    raise "#{generated_xcode_build_settings_path} must exist. Run flutter pub get first"
-  end
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  File.foreach(generated_xcode_build_settings_path) do |line|
-    matches = line.match(/FLUTTER_ROOT\=(.*)/)
-    return matches[1].strip if matches
-  end
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
 
-  raise "FLUTTER_ROOT not found"
-end
+      - name: Show Flutter version
+        run: flutter --version
 
-require File.expand_path(
-  File.join('packages', 'flutter_tools', 'bin', 'podhelper'),
-  flutter_root
-)
+      - name: Flutter pub get
+        run: flutter pub get
 
-flutter_ios_podfile_setup
+      - name: Check iOS deployment target
+        working-directory: parigo_ev_app/ios
+        run: |
+          echo "Podfile:"
+          grep "platform :ios" Podfile
 
-target 'Runner' do
-  use_frameworks!
+      - name: Install CocoaPods
+        working-directory: parigo_ev_app/ios
+        run: |
+          pod deintegrate || true
+          rm -rf Pods
+          rm -f Podfile.lock
+          pod install --repo-update
 
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+      - name: Build Flutter iOS
+        run: |
+          flutter build ios \
+            --release \
+            --no-codesign
 
-  target 'RunnerTests' do
-    inherit! :search_paths
-  end
-end
+      - name: Create Xcode archive
+        working-directory: parigo_ev_app/ios
+        run: |
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            IPHONEOS_DEPLOYMENT_TARGET=15.0
 
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    flutter_additional_ios_build_settings(target)
+      - name: Upload iOS archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: parigo-ev-ios-archive
+          path: ${{ runner.temp }}/Runner.xcarchive
+          retention-days: 7
 
-    target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
-    end
-  end
-end
+      - name: Upload iOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: parigo-ev-ios-build
+          path: parigo_ev_app/build/ios/iphoneos/Runner.app
+          retention-days: 7
