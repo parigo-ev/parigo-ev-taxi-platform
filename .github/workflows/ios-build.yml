@@ -1,110 +1,54 @@
-name: Build iOS Flutter App
+platform :ios, '15.0'
 
-on:
-  push:
-    branches:
-      - ios-test
-  workflow_dispatch:
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
-jobs:
-  build-ios:
-    name: Build Flutter iOS
-    runs-on: macos-latest
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
 
-    defaults:
-      run:
-        working-directory: parigo_ev_app
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(
+    File.join('..', 'Flutter', 'Generated.xcconfig'),
+    __FILE__
+  )
 
-    steps:
-      # --------------------------------------------------
-      # 1. Checkout GitHub repository
-      # --------------------------------------------------
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. Run flutter pub get first"
+  end
 
-      # --------------------------------------------------
-      # 2. Setup Flutter
-      # --------------------------------------------------
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
 
-      # --------------------------------------------------
-      # 3. Show versions
-      # --------------------------------------------------
-      - name: Flutter version
-        run: flutter --version
+  raise "FLUTTER_ROOT not found"
+end
 
-      - name: Dart version
-        run: dart --version
+require File.expand_path(
+  File.join('packages', 'flutter_tools', 'bin', 'podhelper'),
+  flutter_root
+)
 
-      # --------------------------------------------------
-      # 4. Get Flutter packages
-      # --------------------------------------------------
-      - name: Flutter pub get
-        run: flutter pub get
+flutter_ios_podfile_setup
 
-      # --------------------------------------------------
-      # 5. Verify iOS Podfile
-      # --------------------------------------------------
-      - name: Check Podfile
-        run: |
-          echo "Checking iOS Podfile..."
-          test -f ios/Podfile
-          echo "Podfile found:"
-          cat ios/Podfile
+target 'Runner' do
+  use_frameworks!
 
-      # --------------------------------------------------
-      # 6. Install CocoaPods
-      # --------------------------------------------------
-      - name: Install CocoaPods dependencies
-        working-directory: parigo_ev_app/ios
-        run: |
-          pod repo update
-          pod install
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
-      # --------------------------------------------------
-      # 7. Build Flutter iOS
-      # --------------------------------------------------
-      - name: Build Flutter iOS
-        run: |
-          flutter build ios \
-            --release \
-            --no-codesign
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
 
-      # --------------------------------------------------
-      # 8. Create Xcode archive
-      # --------------------------------------------------
-      - name: Create iOS archive
-        working-directory: parigo_ev_app/ios
-        run: |
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            archive \
-            CODE_SIGNING_ALLOWED=NO
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
 
-      # --------------------------------------------------
-      # 9. Upload archive to GitHub
-      # --------------------------------------------------
-      - name: Upload iOS archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: parigo-ev-ios-archive
-          path: ${{ runner.temp }}/Runner.xcarchive
-          retention-days: 7
-
-      # --------------------------------------------------
-      # 10. Upload Flutter build
-      # --------------------------------------------------
-      - name: Upload iOS build
-        uses: actions/upload-artifact@v4
-        with:
-          name: parigo-ev-ios-build
-          path: parigo_ev_app/build/ios/iphoneos/Runner.app
-          retention-days: 7
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
+  end
+end
