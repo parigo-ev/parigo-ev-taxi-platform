@@ -3,8 +3,7 @@ name: Build iOS Flutter App
 on:
   push:
     branches:
-      - main
-      - master
+      - ios-test
   workflow_dispatch:
 
 jobs:
