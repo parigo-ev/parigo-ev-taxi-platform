@@ -12,7 +12,7 @@ import 'admin_dashboard_screen.dart';
 import '../widgets/add_admin_sheet.dart';
 import '../widgets/create_coupon_sheet.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
-
+import '../services/push_notification_service.dart';
 
 class AdminSettingsTab extends StatefulWidget {
   const AdminSettingsTab({super.key});
@@ -22,15 +22,13 @@ class AdminSettingsTab extends StatefulWidget {
 }
 
 class _AdminSettingsTabState extends State<AdminSettingsTab> {
-
-
   // Real backend capacity state
   double _maxBookingsPerSlot = 5.0;
-  
+
   // Analytics state
   int _totalRides = 0;
   double _totalRevenue = 0.0;
-  
+
   bool _isLoading = true;
 
   @override
@@ -58,18 +56,25 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
       if (analyticsResponse.statusCode == 200) {
         final data = json.decode(analyticsResponse.body);
         setState(() {
-          _totalRides = data['totalRides'] != null ? int.tryParse(data['totalRides'].toString()) ?? 0 : 0;
-          _totalRevenue = data['totalRevenue'] != null ? double.tryParse(data['totalRevenue'].toString()) ?? 0.0 : 0.0;
+          _totalRides = data['totalRides'] != null
+              ? int.tryParse(data['totalRides'].toString()) ?? 0
+              : 0;
+          _totalRevenue = data['totalRevenue'] != null
+              ? double.tryParse(data['totalRevenue'].toString()) ?? 0.0
+              : 0.0;
         });
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load analytics: ${analyticsResponse.statusCode}')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  'Failed to load analytics: ${analyticsResponse.statusCode}')));
         }
       }
     } catch (e) {
       print('Error fetching analytics: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading analytics: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error loading analytics: $e')));
       }
     } finally {
       if (mounted) {
@@ -260,8 +265,6 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                 ),
               ),
 
-
-
               const SizedBox(height: 32),
 
               // 4. Admin Management (NEW FEATURE)
@@ -275,7 +278,8 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.admin_panel_settings, color: AppTheme.primaryContainer, size: 28),
+                          Icon(Icons.admin_panel_settings,
+                              color: AppTheme.primaryContainer, size: 28),
                           SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -299,12 +303,18 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          icon: const Icon(Icons.person_add, color: AppTheme.primaryContainer),
-                          label: const Text('Add New Admin', style: TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
+                          icon: const Icon(Icons.person_add,
+                              color: AppTheme.primaryContainer),
+                          label: const Text('Add New Admin',
+                              style: TextStyle(
+                                  color: AppTheme.primaryContainer,
+                                  fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppTheme.primaryContainer),
+                            side: const BorderSide(
+                                color: AppTheme.primaryContainer),
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: () {
                             showModalBottomSheet(
@@ -338,7 +348,8 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.local_offer, color: AppTheme.primaryContainer, size: 28),
+                          Icon(Icons.local_offer,
+                              color: AppTheme.primaryContainer, size: 28),
                           SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -349,7 +360,8 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                                         color: AppTheme.onSurface,
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold)),
-                                Text('Generate coupons for all or specific customers',
+                                Text(
+                                    'Generate coupons for all or specific customers',
                                     style: TextStyle(
                                         color: AppTheme.onSurfaceVariant,
                                         fontSize: 12)),
@@ -362,12 +374,18 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          icon: const Icon(Icons.add, color: AppTheme.primaryContainer),
-                          label: const Text('Generate Coupon', style: TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
+                          icon: const Icon(Icons.add,
+                              color: AppTheme.primaryContainer),
+                          label: const Text('Generate Coupon',
+                              style: TextStyle(
+                                  color: AppTheme.primaryContainer,
+                                  fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppTheme.primaryContainer),
+                            side: const BorderSide(
+                                color: AppTheme.primaryContainer),
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: () {
                             showModalBottomSheet(
@@ -398,25 +416,32 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Logout Button
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.logout, color: Colors.redAccent),
                   label: const Text('Logout',
-                      style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.redAccent),
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
                         backgroundColor: AppTheme.surfaceContainer,
-                        title: const Text('Log Out?', style: TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
+                        title: const Text('Log Out?',
+                            style: TextStyle(
+                                color: AppTheme.onSurface,
+                                fontWeight: FontWeight.bold)),
                         content: const Text(
                           'Are you sure you want to log out of the Admin Portal?',
                           style: TextStyle(color: AppTheme.onSurfaceVariant),
@@ -424,12 +449,16 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel', style: TextStyle(color: AppTheme.primaryContainer)),
+                            child: const Text('Cancel',
+                                style: TextStyle(
+                                    color: AppTheme.primaryContainer)),
                           ),
                           ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent),
                             onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Log Out', style: TextStyle(color: Colors.white)),
+                            child: const Text('Log Out',
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ],
                       ),
@@ -437,10 +466,14 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
 
                     if (confirm != true) return;
 
+                    await PushNotificationService()
+                        .unregisterTokenForCurrentUser();
                     await UserSession().clear();
                     if (context.mounted) {
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => const LoginScreen(role: 'Admin')),
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const LoginScreen(role: 'Admin')),
                         (route) => false,
                       );
                     }

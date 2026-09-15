@@ -30,7 +30,8 @@ class CustomerHomeScreen extends StatefulWidget {
   State<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
 }
 
-class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBindingObserver {
+class _CustomerHomeScreenState extends State<CustomerHomeScreen>
+    with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   GoogleMapController? _mapController;
   final LatLng _initialPosition =
@@ -62,7 +63,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
     _loadLiveDrivers();
     _timer =
         Timer.periodic(const Duration(seconds: 10), (_) => _loadLiveDrivers());
-        
+
     DeepLinkHandler().pendingDestination.addListener(_handleDeepLink);
     _handleDeepLink(); // check initial state
   }
@@ -75,17 +76,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
           _customDestinationPosition = LatLng(dest['lat'], dest['lng']);
           _customDestinationAddress = dest['description'];
         });
-        
+
         _fetchRouteAndDraw(dest);
-        
+
         if (dest['description'] == 'Shared Location') {
-           _fetchAddressFromCoordinates(_customDestinationPosition!).then((address) {
-             if (mounted) {
-               setState(() {
-                  _customDestinationAddress = address;
-               });
-             }
-           });
+          _fetchAddressFromCoordinates(_customDestinationPosition!)
+              .then((address) {
+            if (mounted) {
+              setState(() {
+                _customDestinationAddress = address;
+              });
+            }
+          });
         }
       }
       DeepLinkHandler().clearPendingDestination();
@@ -97,7 +99,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
   Future<void> _fetchProfile() async {
     if (_phone.isEmpty) return;
     try {
-      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/user/profile/$_phone'));
+      final response = await ApiClient.get(
+          Uri.parse('${ApiConstants.baseUrl}/user/profile/$_phone'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -141,7 +144,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
         ..add(Marker(
           markerId: const MarkerId('pickup'),
           position: LatLng(pLat, pLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           infoWindow: const InfoWindow(title: 'Pickup Location'),
         ));
     });
@@ -149,12 +153,16 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
 
   Color _darken(Color color, [double amount = .2]) {
     final hsl = HSLColor.fromColor(color);
-    return hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0)).toColor();
+    return hsl
+        .withLightness((hsl.lightness - amount).clamp(0.0, 1.0))
+        .toColor();
   }
 
   Color _lighten(Color color, [double amount = .2]) {
     final hsl = HSLColor.fromColor(color);
-    return hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0)).toColor();
+    return hsl
+        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
+        .toColor();
   }
 
   Future<BitmapDescriptor> _getRealisticCarMarker(Color color) async {
@@ -167,7 +175,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
     final Paint shadowPaint = Paint()
       ..color = Colors.black.withOpacity(0.6)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(6, 8, width, height), const Radius.circular(20)), shadowPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(6, 8, width, height), const Radius.circular(20)),
+        shadowPaint);
 
     // Base Body
     final Path bodyPath = Path()
@@ -200,11 +211,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
 
     // Side Mirrors
     final Paint mirrorPaint = Paint()..color = _darken(color, 0.1);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 36, 8, 12), const Radius.circular(4)), mirrorPaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(width - 8, 36, 8, 12), const Radius.circular(4)), mirrorPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(0, 36, 8, 12), const Radius.circular(4)),
+        mirrorPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(width - 8, 36, 8, 12), const Radius.circular(4)),
+        mirrorPaint);
 
     // Windshield
-    final Paint windowPaint = Paint()..shader = ui.Gradient.linear(const Offset(0, 30), const Offset(0, 60), [const Color(0xFF1E272E), const Color(0xFF0D1115)]);
+    final Paint windowPaint = Paint()
+      ..shader = ui.Gradient.linear(const Offset(0, 30), const Offset(0, 60),
+          [const Color(0xFF1E272E), const Color(0xFF0D1115)]);
     final Path windshield = Path()
       ..moveTo(12, 38)
       ..quadraticBezierTo(width / 2, 32, width - 12, 38)
@@ -214,11 +233,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
     canvas.drawPath(windshield, windowPaint);
 
     // Windshield Reflection
-    final Path reflection = Path()..moveTo(16, 42)..lineTo(28, 42)..lineTo(20, 52)..lineTo(10, 52)..close();
+    final Path reflection = Path()
+      ..moveTo(16, 42)
+      ..lineTo(28, 42)
+      ..lineTo(20, 52)
+      ..lineTo(10, 52)
+      ..close();
     canvas.drawPath(reflection, Paint()..color = Colors.white.withOpacity(0.3));
 
     // Roof
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(14, 60, width - 28, 30), const Radius.circular(6)), Paint()..color = const Color(0xFF050505));
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(14, 60, width - 28, 30), const Radius.circular(6)),
+        Paint()..color = const Color(0xFF050505));
 
     // Rear Window
     final Path rearWindow = Path()
@@ -230,32 +257,70 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
     canvas.drawPath(rearWindow, windowPaint);
 
     // Headlights
-    final Paint headlightGlow = Paint()..color = Colors.cyanAccent.withOpacity(0.6)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final Paint headlightGlow = Paint()
+      ..color = Colors.cyanAccent.withOpacity(0.6)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawCircle(const Offset(12, 4), 6, headlightGlow);
     canvas.drawCircle(Offset(width - 12, 4), 6, headlightGlow);
-    final Paint headlightPaint = Paint()..color = Colors.white..strokeWidth = 2..style = PaintingStyle.stroke;
-    canvas.drawPath(Path()..moveTo(10, 4)..lineTo(16, 2), headlightPaint);
-    canvas.drawPath(Path()..moveTo(width - 10, 4)..lineTo(width - 16, 2), headlightPaint);
+    final Paint headlightPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(
+        Path()
+          ..moveTo(10, 4)
+          ..lineTo(16, 2),
+        headlightPaint);
+    canvas.drawPath(
+        Path()
+          ..moveTo(width - 10, 4)
+          ..lineTo(width - 16, 2),
+        headlightPaint);
 
     // Taillights
-    final Paint taillightGlow = Paint()..color = Colors.redAccent.withOpacity(0.8)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawPath(Path()..moveTo(8, height - 6)..lineTo(20, height - 3), taillightGlow..strokeWidth = 4..style = PaintingStyle.stroke);
-    canvas.drawPath(Path()..moveTo(width - 8, height - 6)..lineTo(width - 20, height - 3), taillightGlow);
-    final Paint taillightPaint = Paint()..color = Colors.redAccent..strokeWidth = 2..style = PaintingStyle.stroke;
-    canvas.drawPath(Path()..moveTo(8, height - 6)..lineTo(20, height - 3), taillightPaint);
-    canvas.drawPath(Path()..moveTo(width - 8, height - 6)..lineTo(width - 20, height - 3), taillightPaint);
+    final Paint taillightGlow = Paint()
+      ..color = Colors.redAccent.withOpacity(0.8)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawPath(
+        Path()
+          ..moveTo(8, height - 6)
+          ..lineTo(20, height - 3),
+        taillightGlow
+          ..strokeWidth = 4
+          ..style = PaintingStyle.stroke);
+    canvas.drawPath(
+        Path()
+          ..moveTo(width - 8, height - 6)
+          ..lineTo(width - 20, height - 3),
+        taillightGlow);
+    final Paint taillightPaint = Paint()
+      ..color = Colors.redAccent
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(
+        Path()
+          ..moveTo(8, height - 6)
+          ..lineTo(20, height - 3),
+        taillightPaint);
+    canvas.drawPath(
+        Path()
+          ..moveTo(width - 8, height - 6)
+          ..lineTo(width - 20, height - 3),
+        taillightPaint);
 
-    final ui.Image image = await pictureRecorder.endRecording().toImage(width.toInt() + 10, height.toInt() + 10);
-    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final ui.Image image = await pictureRecorder
+        .endRecording()
+        .toImage(width.toInt() + 10, height.toInt() + 10);
+    final ByteData? byteData =
+        await image.toByteData(format: ui.ImageByteFormat.png);
     return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
   }
 
   Future<void> _loadLiveDrivers() async {
     try {
       final response = await ApiClient.get(
-            Uri.parse('${ApiConstants.baseUrl}/admin/drivers/available'),
-          )
-          .timeout(const Duration(seconds: 10));
+        Uri.parse('${ApiConstants.baseUrl}/admin/drivers/available'),
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -264,11 +329,15 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
         Set<Marker> newMarkers = Set.from(_markers.where((m) =>
             m.markerId.value == 'dest' ||
             m.markerId.value == 'pickup' ||
-            m.markerId.value.startsWith('stop_'))); // Keep destination, pickup, and intermediate stop markers
+            m.markerId.value.startsWith(
+                'stop_'))); // Keep destination, pickup, and intermediate stop markers
 
         // Only show nearby drivers if the user is NOT currently booking a ride
-        if (_customDestinationPosition == null && _stops.isEmpty && _polylines.isEmpty) {
-          final BitmapDescriptor carIcon = await _getRealisticCarMarker(Colors.greenAccent.shade700);
+        if (_customDestinationPosition == null &&
+            _stops.isEmpty &&
+            _polylines.isEmpty) {
+          final BitmapDescriptor carIcon =
+              await _getRealisticCarMarker(Colors.greenAccent.shade700);
           for (var d in drivers) {
             if (d['lat'] == null || d['lng'] == null) continue;
 
@@ -277,8 +346,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
               position: LatLng(double.parse(d['lat'].toString()),
                   double.parse(d['lng'].toString())),
               icon: carIcon,
-              infoWindow:
-                  const InfoWindow(title: 'Parigo EV', snippet: 'Available nearby'),
+              infoWindow: const InfoWindow(
+                  title: 'Parigo EV', snippet: 'Available nearby'),
             ));
           }
         }
@@ -306,7 +375,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('GPS is Disabled'),
-            content: const Text('Please turn on your phone\'s GPS/Location Services so we can automatically set your pickup location and show nearby EV drivers.'),
+            content: const Text(
+                'Please turn on your phone\'s GPS/Location Services so we can automatically set your pickup location and show nearby EV drivers.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -324,14 +394,16 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
 
     permission = await Geolocator.checkPermission();
     print("DEBUG: Current location permission state: $permission");
-    
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
       // 1. Show Prominent Disclosure for Google Play / App Store compliance
       final accepted = await LocationDisclosureDialog.show(
         context,
-        message: 'Parigo EV collects location data to accurately locate your pickup point and show nearby drivers, even if you temporarily minimize the app.',
+        message:
+            'Parigo EV collects location data to accurately locate your pickup point and show nearby drivers, even if you temporarily minimize the app.',
       );
-      
+
       if (accepted != true) {
         return;
       }
@@ -357,7 +429,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
     }
 
     // Permission granted, get current high-accuracy location
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
     setState(() {
       _currentPosition = position;
       _customPickupAddress = 'Fetching address...';
@@ -448,7 +521,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
     try {
       String waypointsStr = '';
       if (_stops.isNotEmpty) {
-        waypointsStr = '&waypoints=' + _stops.map((s) => '${s['lat']},${s['lng']}').join('|');
+        waypointsStr = '&waypoints=' +
+            _stops.map((s) => '${s['lat']},${s['lng']}').join('|');
       }
       final url =
           'https://maps.googleapis.com/maps/api/directions/json?origin=$pLat,$pLng&destination=$dLat,$dLng$waypointsStr&mode=driving&key=${ApiKeys.googleMapsKey}';
@@ -477,7 +551,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
         final pickupMarker = Marker(
           markerId: const MarkerId('pickup'),
           position: LatLng(pLat, pLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           infoWindow: const InfoWindow(title: 'Pickup Location'),
         );
         final newPolyline = Polyline(
@@ -487,16 +562,21 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
           points: routePoints,
         );
 
-        Set<Marker> updatedMarkers = Set.from(_markers.where((m) => m.markerId.value != 'dest' && m.markerId.value != 'pickup' && !m.markerId.value.startsWith('stop_') && !m.markerId.value.startsWith('driver_')));
+        Set<Marker> updatedMarkers = Set.from(_markers.where((m) =>
+            m.markerId.value != 'dest' &&
+            m.markerId.value != 'pickup' &&
+            !m.markerId.value.startsWith('stop_') &&
+            !m.markerId.value.startsWith('driver_')));
         updatedMarkers.add(newMarker);
         updatedMarkers.add(pickupMarker);
-        for (int i=0; i<_stops.length; i++) {
-           updatedMarkers.add(Marker(
-             markerId: MarkerId('stop_$i'),
-             position: LatLng(_stops[i]['lat'], _stops[i]['lng']),
-             icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
-             infoWindow: InfoWindow(title: 'Stop ${i+1}'),
-           ));
+        for (int i = 0; i < _stops.length; i++) {
+          updatedMarkers.add(Marker(
+            markerId: MarkerId('stop_$i'),
+            position: LatLng(_stops[i]['lat'], _stops[i]['lng']),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueYellow),
+            infoWindow: InfoWindow(title: 'Stop ${i + 1}'),
+          ));
         }
         _markers = updatedMarkers;
         _polylines = Set.from(_polylines)..add(newPolyline);
@@ -529,90 +609,100 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
         backgroundColor: Colors.transparent,
         elevation: 0,
         child: ClipRRect(
-          borderRadius: const BorderRadius.horizontal(right: Radius.circular(24)),
+          borderRadius:
+              const BorderRadius.horizontal(right: Radius.circular(24)),
           child: BackdropFilter(
             filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
             child: Container(
-              color: AppTheme.surfaceContainer.withOpacity(0.4),
+              // An opaque surface keeps account information and navigation
+              // controls legible over a live map on every platform.
+              color: AppTheme.surface,
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
                   DrawerHeader(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          AppTheme.primaryContainer.withOpacity(0.3),
-                          AppTheme.secondaryContainer.withOpacity(0.3)
+                        colors: const [
+                          AppTheme.primaryContainer,
+                          Color(0xFF007A8A),
                         ],
                       ),
-                      border: Border(bottom: BorderSide(color: AppTheme.onSurface.withOpacity(0.1), width: 1.5)),
+                      border: const Border(
+                        bottom: BorderSide(color: AppTheme.outline, width: 1.5),
+                      ),
                     ),
                     child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundColor: AppTheme.surfaceContainerHighest,
-                    child:
-                        Icon(Icons.person, size: 40, color: AppTheme.onSurface),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.person,
+                              size: 40, color: AppTheme.primaryContainer),
+                        ),
+                        const Spacer(),
+                        Text(_name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                        Text(_phone.isEmpty ? 'Loading...' : _phone,
+                            style: const TextStyle(color: Colors.white)),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
-                  Text(_name,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppTheme.onSurface,
-                          fontWeight: FontWeight.bold)),
-                  Text(_phone.isEmpty ? 'Loading...' : _phone,
-                      style: const TextStyle(color: AppTheme.onSurfaceVariant)),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home, color: AppTheme.onSurfaceVariant),
-              title: const Text('Home',
-                  style: TextStyle(color: AppTheme.onSurface)),
-              onTap: () {
-                Navigator.pop(context); // Close drawer
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.electric_car,
-                  color: AppTheme.onSurfaceVariant),
-              title: const Text('Scheduled Rides',
-                  style: TextStyle(color: AppTheme.onSurface)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ScheduledRidesScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.account_balance_wallet,
-                  color: AppTheme.onSurfaceVariant),
-              title: const Text('Wallet',
-                  style: TextStyle(color: AppTheme.onSurface)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const WalletScreen()));
-              },
-            ),
-            ListTile(
-              leading:
-                  const Icon(Icons.person, color: AppTheme.onSurfaceVariant),
-              title: const Text('Profile',
-                  style: TextStyle(color: AppTheme.onSurface)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ProfileScreen()));
-              },
-            ),
+                  ListTile(
+                    leading: const Icon(Icons.home,
+                        color: AppTheme.primaryContainer),
+                    title: const Text('Home',
+                        style: TextStyle(color: AppTheme.onSurface)),
+                    onTap: () {
+                      Navigator.pop(context); // Close drawer
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.electric_car,
+                        color: AppTheme.primaryContainer),
+                    title: const Text('Scheduled Rides',
+                        style: TextStyle(color: AppTheme.onSurface)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const ScheduledRidesScreen()));
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.account_balance_wallet,
+                        color: AppTheme.primaryContainer),
+                    title: const Text('Wallet',
+                        style: TextStyle(color: AppTheme.onSurface)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const WalletScreen()));
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.person,
+                        color: AppTheme.primaryContainer),
+                    title: const Text('Profile',
+                        style: TextStyle(color: AppTheme.onSurface)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ProfileScreen()));
+                    },
+                  ),
                 ],
               ),
             ),
@@ -770,18 +860,21 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                   icon: Icons.menu,
                   onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 ),
-                
+
                 // Logo (Pill shaped)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
                   child: BackdropFilter(
                     filter: ui.ImageFilter.blur(sigmaX: 40, sigmaY: 40),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                       decoration: BoxDecoration(
                         color: AppTheme.surface.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: AppTheme.onSurface.withOpacity(0.2), width: 1.5),
+                        border: Border.all(
+                            color: AppTheme.onSurface.withOpacity(0.2),
+                            width: 1.5),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.1),
@@ -790,11 +883,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                         ],
                       ),
                       child: ParigoLogo(
-                        textStyle:
-                            Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  letterSpacing: 2,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                        textStyle: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              letterSpacing: 2,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                     ),
                   ),
@@ -805,13 +900,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                   icon: Icons.sos,
                   iconColor: Colors.redAccent,
                   onPressed: () async {
-                    final Uri url = Uri.parse('whatsapp://send?phone=+918878587615');
+                    final Uri url =
+                        Uri.parse('whatsapp://send?phone=+918878587615');
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url);
                     } else {
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not launch WhatsApp')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Could not launch WhatsApp')));
                     }
                   },
                 ),
@@ -856,7 +952,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                       decoration: BoxDecoration(
                         color: AppTheme.surface.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: AppTheme.onSurface.withOpacity(0.1)),
+                        border: Border.all(
+                            color: AppTheme.onSurface.withOpacity(0.1)),
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 4),
@@ -884,8 +981,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                                           DestinationSearchScreen(
                                             title: 'Search Pickup',
                                             hintText: 'Enter pickup location',
-                                            currentLat: _currentPosition?.latitude,
-                                            currentLng: _currentPosition?.longitude,
+                                            currentLat:
+                                                _currentPosition?.latitude,
+                                            currentLng:
+                                                _currentPosition?.longitude,
                                           )),
                                 );
                                 if (result != null) {
@@ -905,7 +1004,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                               decoration: InputDecoration(
                                 border: InputBorder.none,
                                 isDense: true,
-                                hintText: _customPickupAddress ?? 'Current location',
+                                hintText:
+                                    _customPickupAddress ?? 'Current location',
                                 hintStyle: TextStyle(
                                     color: AppTheme.onSurfaceVariant
                                         .withOpacity(0.7),
@@ -922,12 +1022,15 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                             onPressed: () async {
                               // Fetch fresh location to prevent stale/cached location bugs
                               try {
-                                Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+                                Position position =
+                                    await Geolocator.getCurrentPosition(
+                                        desiredAccuracy: LocationAccuracy.high);
                                 if (mounted) {
                                   setState(() {
                                     _currentPosition = position;
                                     _customPickupPosition = null;
-                                    _customPickupAddress = 'Fetching address...';
+                                    _customPickupAddress =
+                                        'Fetching address...';
                                     _updatePickupMarker();
                                   });
                                 }
@@ -936,9 +1039,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                                         LatLng(position.latitude,
                                             position.longitude),
                                         15));
-                                final address = await _fetchAddressFromCoordinates(
-                                    LatLng(position.latitude,
-                                        position.longitude));
+                                final address =
+                                    await _fetchAddressFromCoordinates(LatLng(
+                                        position.latitude, position.longitude));
                                 if (mounted) {
                                   setState(() {
                                     _customPickupAddress = address;
@@ -964,7 +1067,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                         ],
                       ),
                     ),
-                    
+
                     if (_stops.isNotEmpty)
                       ..._stops.asMap().entries.map((entry) {
                         int index = entry.key;
@@ -977,7 +1080,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                                   color: AppTheme.surface.withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(999),
                                   border: Border.all(
-                                      color: AppTheme.onSurface.withOpacity(0.1))),
+                                      color:
+                                          AppTheme.onSurface.withOpacity(0.1))),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 4),
                               child: Row(
@@ -994,7 +1098,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      stop['description'] ?? 'Stop ${index + 1}',
+                                      stop['description'] ??
+                                          'Stop ${index + 1}',
                                       style: const TextStyle(fontSize: 14),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -1004,21 +1109,28 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
                                     icon: const Icon(Icons.close,
-                                        color: AppTheme.onSurfaceVariant, size: 20),
+                                        color: AppTheme.onSurfaceVariant,
+                                        size: 20),
                                     onPressed: () {
                                       setState(() {
                                         _stops.removeAt(index);
                                       });
                                       if (_customDestinationPosition != null) {
                                         _fetchRouteAndDraw({
-                                          'lat': _customDestinationPosition!.latitude,
-                                          'lng': _customDestinationPosition!.longitude,
-                                          'description': _customDestinationAddress ?? 'Destination',
+                                          'lat': _customDestinationPosition!
+                                              .latitude,
+                                          'lng': _customDestinationPosition!
+                                              .longitude,
+                                          'description':
+                                              _customDestinationAddress ??
+                                                  'Destination',
                                         });
                                       } else {
                                         setState(() {
-                                           _markers.removeWhere((m) => m.markerId.value.startsWith('stop_'));
-                                           _polylines.clear();
+                                          _markers.removeWhere((m) => m
+                                              .markerId.value
+                                              .startsWith('stop_'));
+                                          _polylines.clear();
                                         });
                                       }
                                     },
@@ -1029,7 +1141,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                           ],
                         );
                       }).toList(),
-                      
+
                     if (_stops.length < 2)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0, left: 12),
@@ -1053,7 +1165,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                                 _fetchRouteAndDraw({
                                   'lat': _customDestinationPosition!.latitude,
                                   'lng': _customDestinationPosition!.longitude,
-                                  'description': _customDestinationAddress ?? 'Destination',
+                                  'description': _customDestinationAddress ??
+                                      'Destination',
                                 });
                               }
                             }
@@ -1061,14 +1174,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: const [
-                              Icon(Icons.add, color: AppTheme.primary, size: 20),
+                              Icon(Icons.add,
+                                  color: AppTheme.primary, size: 20),
                               SizedBox(width: 8),
-                              Text('Add Stop', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                              Text('Add Stop',
+                                  style: TextStyle(
+                                      color: AppTheme.primary,
+                                      fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
                       ),
-                      
+
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
@@ -1111,8 +1228,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                                   MaterialPageRoute(
                                       builder: (context) =>
                                           DestinationSearchScreen(
-                                            currentLat: _currentPosition?.latitude,
-                                            currentLng: _currentPosition?.longitude,
+                                            currentLat:
+                                                _currentPosition?.latitude,
+                                            currentLng:
+                                                _currentPosition?.longitude,
                                           )),
                                 );
                                 if (result != null) {
@@ -1202,7 +1321,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ScheduleRideScreen(
-                                    pickup: pickup, destination: dest, stops: _stops),
+                                    pickup: pickup,
+                                    destination: dest,
+                                    stops: _stops),
                               ),
                             );
                           },
@@ -1248,7 +1369,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> with WidgetsBin
             decoration: BoxDecoration(
               color: AppTheme.surface.withOpacity(0.3),
               shape: BoxShape.circle,
-              border: Border.all(color: AppTheme.onSurface.withOpacity(0.2), width: 1.5),
+              border: Border.all(
+                  color: AppTheme.onSurface.withOpacity(0.2), width: 1.5),
               boxShadow: [
                 BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 24)
               ],

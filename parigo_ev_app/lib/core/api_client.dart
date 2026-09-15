@@ -8,12 +8,13 @@ import 'user_session.dart';
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 class ApiClient {
-  static Future<Map<String, String>> _getHeaders({Map<String, String>? customHeaders, bool forceRefresh = false}) async {
+  static Future<Map<String, String>> _getHeaders(
+      {Map<String, String>? customHeaders, bool forceRefresh = false}) async {
     final headers = <String, String>{'Content-Type': 'application/json'};
     if (customHeaders != null) {
       headers.addAll(customHeaders);
     }
-    
+
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
@@ -33,14 +34,14 @@ class ApiClient {
 
   /// Core request method with automatic 401 retry
   static Future<http.Response> _requestWithRetry(
-    Future<http.Response> Function(Map<String, String> headers) makeRequest,
-  ) async {
+      Future<http.Response> Function(Map<String, String> headers) makeRequest,
+      {bool handleUnauthorized = true}) async {
     // First attempt with potentially cached token
     final headers = await _getHeaders();
     final response = await makeRequest(headers);
 
     // If 401, force-refresh the token and retry once
-    if (response.statusCode == 401) {
+    if (handleUnauthorized && response.statusCode == 401) {
       print('ApiClient: Got 401, force-refreshing token and retrying...');
       final freshHeaders = await _getHeaders(forceRefresh: true);
       final retryResponse = await makeRequest(freshHeaders);
@@ -60,35 +61,44 @@ class ApiClient {
   static Future<void> _handleAuthFailure() async {
     await UserSession().clear();
     await FirebaseAuth.instance.signOut();
-    
+
     // Navigate to onboarding/login if navigator key is available
     if (appNavigatorKey.currentState != null) {
-      appNavigatorKey.currentState!.pushNamedAndRemoveUntil('/', (route) => false);
+      appNavigatorKey.currentState!
+          .pushNamedAndRemoveUntil('/', (route) => false);
     }
   }
 
-  static Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
+  static Future<http.Response> get(Uri url,
+      {Map<String, String>? headers}) async {
     return _requestWithRetry((authHeaders) {
       if (headers != null) authHeaders.addAll(headers);
       return http.get(url, headers: authHeaders);
     });
   }
 
-  static Future<http.Response> post(Uri url, {Map<String, String>? headers, Object? body}) async {
+  static Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    bool handleUnauthorized = true,
+  }) async {
     return _requestWithRetry((authHeaders) {
       if (headers != null) authHeaders.addAll(headers);
       return http.post(url, headers: authHeaders, body: body);
-    });
+    }, handleUnauthorized: handleUnauthorized);
   }
 
-  static Future<http.Response> put(Uri url, {Map<String, String>? headers, Object? body}) async {
+  static Future<http.Response> put(Uri url,
+      {Map<String, String>? headers, Object? body}) async {
     return _requestWithRetry((authHeaders) {
       if (headers != null) authHeaders.addAll(headers);
       return http.put(url, headers: authHeaders, body: body);
     });
   }
 
-  static Future<http.Response> delete(Uri url, {Map<String, String>? headers, Object? body}) async {
+  static Future<http.Response> delete(Uri url,
+      {Map<String, String>? headers, Object? body}) async {
     return _requestWithRetry((authHeaders) {
       if (headers != null) authHeaders.addAll(headers);
       return http.delete(url, headers: authHeaders, body: body);

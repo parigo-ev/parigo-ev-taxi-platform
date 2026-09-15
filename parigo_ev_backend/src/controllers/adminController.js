@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const db = require('../../db');
+const { notifyUser, notifyUsers } = require('../services/pushNotificationService');
 
 function normalizePhone(phone) {
   if (!phone) return phone;
@@ -29,13 +30,12 @@ const reportCrash = async (req, res) => {
       stackTrace: stackTrace
     });
     
-    // Insert notification for each admin
-    for (const adm of adminsResult.rows) {
-      await db.query(
-        'INSERT INTO notifications (uid, title, message, type, metadata) VALUES ($1, $2, $3, $4, $5)',
-        [adm.uid, 'Critical App Crash 🚨', message, 'crash_alert', metadata]
-      );
-    }
+    await notifyUsers(adminsResult.rows.map((adminUser) => adminUser.uid), {
+      title: 'Critical App Crash 🚨',
+      message,
+      type: 'crash_alert',
+      metadata,
+    });
     
     res.status(200).json({ success: true, message: 'Crash reported to admins' });
   } catch (error) {
@@ -557,16 +557,10 @@ const sendPromo = async (req, res) => {
   
   try {
     if (targetUid) {
-      await db.query(
-        'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-        [targetUid, title, message, 'promo']
-      );
+      await notifyUser(targetUid, { title, message, type: 'promo' });
     } else {
-      // Send to all customers
-      await db.query(`
-        INSERT INTO notifications (uid, title, message, type)
-        SELECT uid, $1, $2, $3 FROM users WHERE role = 'customer'
-      `, [title, message, 'promo']);
+      const customers = await db.query("SELECT uid FROM users WHERE role = 'customer'");
+      await notifyUsers(customers.rows.map((customer) => customer.uid), { title, message, type: 'promo' });
     }
     res.status(200).json({ success: true, message: 'Promo sent successfully' });
   } catch (error) {
@@ -618,15 +612,14 @@ const createCoupon = async (req, res) => {
     const promoMessage = `Use coupon code "${upperCode}" to get a ${discountStr} discount on your next scheduled ride!`;
 
     if (targetType === 'INDIVIDUAL' && targetUid) {
-      await db.query(
-        'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-        [targetUid, promoTitle, promoMessage, 'promo']
-      );
+      await notifyUser(targetUid, { title: promoTitle, message: promoMessage, type: 'promo' });
     } else if (targetType === 'ALL') {
-      await db.query(`
-        INSERT INTO notifications (uid, title, message, type)
-        SELECT uid, $1, $2, $3 FROM users WHERE role = 'customer'
-      `, [promoTitle, promoMessage, 'promo']);
+      const customers = await db.query("SELECT uid FROM users WHERE role = 'customer'");
+      await notifyUsers(customers.rows.map((customer) => customer.uid), {
+        title: promoTitle,
+        message: promoMessage,
+        type: 'promo',
+      });
     }
 
     res.status(200).json({ success: true, message: 'Coupon created and notifications sent successfully' });
@@ -679,16 +672,10 @@ const sendAdminNotification = async (req, res) => {
       }
       const targetUid = userResult.rows[0].uid;
       
-      await db.query(
-        'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-        [targetUid, title, message, 'promo']
-      );
+      await notifyUser(targetUid, { title, message, type: 'promo' });
     } else {
-      // Send to all customers
-      await db.query(`
-        INSERT INTO notifications (uid, title, message, type)
-        SELECT uid, $1, $2, 'promo' FROM users WHERE role = 'customer'
-      `, [title, message]);
+      const customers = await db.query("SELECT uid FROM users WHERE role = 'customer'");
+      await notifyUsers(customers.rows.map((customer) => customer.uid), { title, message, type: 'promo' });
     }
     res.status(200).json({ success: true, message: 'Notification sent successfully' });
   } catch (error) {

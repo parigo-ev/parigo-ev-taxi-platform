@@ -6,5 +6,7 @@ router.get('/:phone', notificationController.getNotifications);
 router.post('/mark-read', notificationController.markAsRead);
 router.get('/unread-count/:phone', notificationController.getUnreadCount);
 router.post('/test', notificationController.testNotification);
+router.post('/device-token', notificationController.registerDeviceToken);
+router.delete('/device-token', notificationController.unregisterDeviceToken);
 
 module.exports = router;

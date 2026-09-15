@@ -71,8 +71,14 @@ const deleteAccount = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  const { phone, name, email } = req.body;
+  const { phone, name, firstName, email, isRegistration } = req.body;
   if (!phone) return res.status(400).json({ error: 'Phone is required' });
+  if (isRegistration && (!firstName || !firstName.trim())) {
+    return res.status(400).json({ error: 'First name is required' });
+  }
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
 
   try {
     await db.query(

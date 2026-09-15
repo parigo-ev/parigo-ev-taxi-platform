@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../theme/app_theme.dart';
 import 'onboarding_screen.dart';
@@ -6,10 +7,11 @@ import 'customer_main_screen.dart';
 import 'driver_live_photo_screen.dart';
 import 'admin_dashboard_screen.dart';
 import '../core/user_session.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../widgets/parigo_logo.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../widgets/permission_disclosure_dialog.dart';
+import '../services/push_notification_service.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
 
@@ -48,11 +50,13 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _initializeApp() async {
     // Start minimum splash duration timer
     final minSplashDuration = Future.delayed(const Duration(seconds: 3));
-    
+
     // Load local session concurrently
     await UserSession().loadSession();
+    await PushNotificationService().syncTokenForCurrentUser();
 
-    // Request notification permission for Android 13+ on startup
+    // iOS requires explicit authorization before it can show local alerts.
+    // Android keeps the same flow for Android 13 and later.
     await Permission.notification.request();
 
     // Wait for the minimum splash time to pass before navigating
@@ -60,16 +64,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    final phonePermissionStatus = await Permission.phone.status;
-    if (!phonePermissionStatus.isGranted) {
-      final accepted = await PermissionDisclosureDialog.show(
-        context,
-        title: 'Phone & Calls Access',
-        message: 'Parigo EV needs access to manage phone calls so you can securely contact drivers or customers directly from the app during active rides.',
-        icon: Icons.phone,
-      );
-      if (accepted == true) {
-        await Permission.phone.request();
+    // iOS opens the Phone app through a tel: URL and has no equivalent phone
+    // permission. Requesting Permission.phone there leaves users in a prompt
+    // loop, so keep this Android-only.
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      final phonePermissionStatus = await Permission.phone.status;
+      if (!phonePermissionStatus.isGranted) {
+        final accepted = await PermissionDisclosureDialog.show(
+          context,
+          title: 'Phone & Calls Access',
+          message:
+              'Parigo EV needs access to manage phone calls so you can securely contact drivers or customers directly from the app during active rides.',
+          icon: Icons.phone,
+        );
+        if (accepted == true) {
+          await Permission.phone.request();
+        }
       }
     }
 
@@ -97,6 +107,9 @@ class _SplashScreenState extends State<SplashScreen>
         transitionDuration: const Duration(milliseconds: 800),
       ),
     );
+    Future.delayed(const Duration(milliseconds: 850), () {
+      if (mounted) PushNotificationService().handleInitialNotificationTap();
+    });
   }
 
   @override
@@ -163,12 +176,10 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 24),
                     ParigoLogo(
-                      textStyle: Theme.of(context)
-                          .textTheme
-                          .displayLarge
-                          ?.copyWith(
-                            letterSpacing: 4,
-                          ),
+                      textStyle:
+                          Theme.of(context).textTheme.displayLarge?.copyWith(
+                                letterSpacing: 4,
+                              ),
                     ),
                     const SizedBox(height: 8),
                     Text(

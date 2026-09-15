@@ -1,6 +1,7 @@
 node_modules/
 build/
 .dart_tool/
+.DS_Store
 .env
 parigo_ev_backend/serviceAccountKey.json
 *.jks

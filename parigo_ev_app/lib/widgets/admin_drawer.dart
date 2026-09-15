@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../core/api_constants.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
-
+import '../services/push_notification_service.dart';
 
 class AdminDrawer extends StatefulWidget {
   const AdminDrawer({super.key});
@@ -33,7 +33,8 @@ class _AdminDrawerState extends State<AdminDrawer> {
 
   Future<void> _fetchAdminProfile() async {
     try {
-      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/user/profile/$_adminPhone'));
+      final response = await ApiClient.get(
+          Uri.parse('${ApiConstants.baseUrl}/user/profile/$_adminPhone'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -109,74 +110,75 @@ class _AdminDrawerState extends State<AdminDrawer> {
                 child: Column(
                   children: [
                     const SizedBox(height: 8),
-            _buildMenuItem(
-              context,
-              icon: Icons.list_alt,
-              title: 'Dispatch',
-              index: 0,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.map,
-              title: 'Live Map',
-              index: 1,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.electric_car,
-              title: 'Rides',
-              index: 2,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.people,
-              title: 'Fleet',
-              index: 3,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.person_outline,
-              title: 'Customers',
-              index: 4,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.star_rate,
-              title: 'Customer Feedback',
-              index: 5,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.stars,
-              title: 'Driver Feedback',
-              index: 8,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.report_problem,
-              title: 'Reports & Issues',
-              index: 7,
-              currentIndex: currentIndex,
-              dashboardState: dashboardState,
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Divider(color: AppTheme.outline),
-            ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.list_alt,
+                      title: 'Dispatch',
+                      index: 0,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.map,
+                      title: 'Live Map',
+                      index: 1,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.electric_car,
+                      title: 'Rides',
+                      index: 2,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.people,
+                      title: 'Fleet',
+                      index: 3,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.person_outline,
+                      title: 'Customers',
+                      index: 4,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.star_rate,
+                      title: 'Customer Feedback',
+                      index: 5,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.stars,
+                      title: 'Driver Feedback',
+                      index: 8,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.report_problem,
+                      title: 'Reports & Issues',
+                      index: 7,
+                      currentIndex: currentIndex,
+                      dashboardState: dashboardState,
+                    ),
+                    const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      child: Divider(color: AppTheme.outline),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.notifications,
@@ -185,7 +187,9 @@ class _AdminDrawerState extends State<AdminDrawer> {
                         Navigator.pop(context); // close drawer
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const NotificationsScreen()),
                         );
                       },
                     ),
@@ -197,7 +201,8 @@ class _AdminDrawerState extends State<AdminDrawer> {
                         Navigator.pop(context); // close drawer
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AdminCouponsScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => const AdminCouponsScreen()),
                         );
                       },
                     ),
@@ -231,7 +236,10 @@ class _AdminDrawerState extends State<AdminDrawer> {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: AppTheme.surfaceContainer,
-                    title: const Text('Log Out?', style: TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
+                    title: const Text('Log Out?',
+                        style: TextStyle(
+                            color: AppTheme.onSurface,
+                            fontWeight: FontWeight.bold)),
                     content: const Text(
                       'Are you sure you want to log out of the Admin Portal?',
                       style: TextStyle(color: AppTheme.onSurfaceVariant),
@@ -239,12 +247,15 @@ class _AdminDrawerState extends State<AdminDrawer> {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel', style: TextStyle(color: AppTheme.primaryContainer)),
+                        child: const Text('Cancel',
+                            style: TextStyle(color: AppTheme.primaryContainer)),
                       ),
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent),
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Log Out', style: TextStyle(color: Colors.white)),
+                        child: const Text('Log Out',
+                            style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -252,6 +263,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
 
                 if (confirm != true) return;
 
+                await PushNotificationService().unregisterTokenForCurrentUser();
                 await FirebaseAuth.instance.signOut();
                 await UserSession().clear();
                 if (context.mounted) {
@@ -280,7 +292,8 @@ class _AdminDrawerState extends State<AdminDrawer> {
     dynamic dashboardState,
     VoidCallback? onTap,
   }) {
-    final isSelected = index != null && currentIndex != null && index == currentIndex;
+    final isSelected =
+        index != null && currentIndex != null && index == currentIndex;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -302,12 +315,13 @@ class _AdminDrawerState extends State<AdminDrawer> {
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-        onTap: onTap ?? () {
-          if (index != null) {
-            dashboardState?.setTab(index);
-          }
-          Navigator.pop(context); // Close the drawer
-        },
+        onTap: onTap ??
+            () {
+              if (index != null) {
+                dashboardState?.setTab(index);
+              }
+              Navigator.pop(context); // Close the drawer
+            },
       ),
     );
   }

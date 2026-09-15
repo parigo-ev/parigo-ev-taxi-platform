@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const db = require('../../db');
+const { notifyUser } = require('../services/pushNotificationService');
 
 const verifyOtp = async (req, res) => {
   const { idToken, mockPhone, role: requestedRole } = req.body;
@@ -42,10 +43,11 @@ const verifyOtp = async (req, res) => {
       
       // Insert Welcome Notification
       try {
-        await db.query(
-          'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-          [uid, 'Welcome to Parigo EV!', 'Thanks for joining our eco-friendly fleet. Book your first ride today.', 'welcome']
-        );
+        await notifyUser(uid, {
+          title: 'Welcome to Parigo EV!',
+          message: 'Thanks for joining our eco-friendly fleet. Book your first ride today.',
+          type: 'welcome',
+        });
       } catch (err) {
         console.error('Error inserting welcome notification:', err);
       }
@@ -118,10 +120,13 @@ const checkUser = async (req, res) => {
 
 const setPin = async (req, res) => {
   const { phone, pin } = req.body;
-  if (!phone || !pin) return res.status(400).json({ error: 'Phone and PIN are required' });
+  if (!phone || !/^\d{4}$/.test(pin)) {
+    return res.status(400).json({ error: 'A 4-digit PIN is required' });
+  }
 
   try {
-    await db.query('UPDATE users SET pin = $1 WHERE phone = $2', [pin, phone]);
+    const result = await db.query('UPDATE users SET pin = $1 WHERE phone = $2', [pin, phone]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'User not found' });
     res.status(200).json({ success: true, message: 'PIN set successfully' });
   } catch (error) {
     console.error('Error setting PIN:', error);

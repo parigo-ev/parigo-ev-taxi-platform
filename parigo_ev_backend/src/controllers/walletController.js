@@ -1,6 +1,7 @@
 const db = require('../../db');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const { notifyUser } = require('../services/pushNotificationService');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -83,10 +84,11 @@ const addFunds = async (req, res) => {
 
     // Insert wallet topup notification
     try {
-      await db.query(
-        'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-        [uid, 'Welcome to Parigo EV!', `₹${amount} has been added to your Parigo EV wallet.`, 'wallet_topup']
-      );
+      await notifyUser(uid, {
+        title: 'Wallet Top-up Successful',
+        message: `₹${amount} has been added to your Parigo EV wallet.`,
+        type: 'wallet_topup',
+      });
     } catch (err) {
       console.error('Error inserting wallet topup notification:', err);
     }
@@ -155,10 +157,11 @@ const verifyPayment = async (req, res) => {
     );
 
     try {
-      await db.query(
-        'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-        [uid, 'Wallet Top-up Successful', `₹${amount} has been added to your Parigo EV wallet.`, 'wallet_topup']
-      );
+      await notifyUser(uid, {
+        title: 'Wallet Top-up Successful',
+        message: `₹${amount} has been added to your Parigo EV wallet.`,
+        type: 'wallet_topup',
+      });
     } catch (err) {
       console.error('Error inserting wallet topup notification:', err);
     }
@@ -213,10 +216,11 @@ const razorpayWebhook = async (req, res) => {
           );
 
           try {
-            await db.query(
-              'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-              [uid, 'Wallet Top-up Successful', `₹${amount} has been added to your Parigo EV wallet.`, 'wallet_topup']
-            );
+            await notifyUser(uid, {
+              title: 'Wallet Top-up Successful',
+              message: `₹${amount} has been added to your Parigo EV wallet.`,
+              type: 'wallet_topup',
+            });
           } catch (err) {
             console.error('Error inserting webhook notification:', err);
           }
@@ -337,10 +341,11 @@ const phonepeVerifyPayment = async (req, res) => {
         );
 
         try {
-          await db.query(
-            'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-            [uid, 'Wallet Top-up Successful', `₹${amount} has been added to your Parigo EV wallet.`, 'wallet_topup']
-          );
+          await notifyUser(uid, {
+            title: 'Wallet Top-up Successful',
+            message: `₹${amount} has been added to your Parigo EV wallet.`,
+            type: 'wallet_topup',
+          });
         } catch (err) {}
       }
 

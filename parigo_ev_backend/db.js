@@ -173,6 +173,17 @@ const initDb = async () => {
     await pool.query('ALTER TABLE coupons ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;');
     await pool.query('ALTER TABLE coupons ADD COLUMN IF NOT EXISTS validity_date TIMESTAMP;');
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS device_tokens (
+        id SERIAL PRIMARY KEY,
+        uid VARCHAR(255) NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        platform VARCHAR(20) NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool.query('CREATE INDEX IF NOT EXISTS device_tokens_uid_idx ON device_tokens(uid);');
+
     console.log('PostgreSQL Tables initialized.');
   } catch (error) {
     console.error('Error initializing tables:', error);

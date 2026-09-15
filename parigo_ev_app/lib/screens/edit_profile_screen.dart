@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import '../core/api_constants.dart';
 import '../core/user_session.dart';
-import 'customer_main_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import '../widgets/permission_disclosure_dialog.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
+
 class EditProfileScreen extends StatefulWidget {
   final String? initialPhone;
   final bool isRegistration;
@@ -43,7 +42,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _fetchProfile() async {
     try {
-      final response = await ApiClient.get(Uri.parse('${ApiConstants.baseUrl}/user/profile/${_phoneController.text}'));
+      final response = await ApiClient.get(Uri.parse(
+          '${ApiConstants.baseUrl}/user/profile/${_phoneController.text}'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -70,7 +70,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final accepted = await PermissionDisclosureDialog.show(
         context,
         title: 'Photo Library Access',
-        message: 'Parigo EV requires access to your photo library so you can upload a profile picture for your account.',
+        message:
+            'Parigo EV requires access to your photo library so you can upload a profile picture for your account.',
         icon: Icons.photo_library,
       );
 
@@ -105,7 +106,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile picture updated!'), backgroundColor: Colors.green),
+            const SnackBar(
+                content: Text('Profile picture updated!'),
+                backgroundColor: Colors.green),
           );
         }
       } else {
@@ -114,7 +117,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating picture: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Error updating picture: $e'),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -125,53 +130,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _updateProfile() async {
-    setState(() {
-      _isLoading = true;
-    });
-    final name =
-        '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
-            .trim();
+    final firstName = _firstNameController.text.trim();
+    if (widget.isRegistration && firstName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('First name is required')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final name = '$firstName ${_lastNameController.text.trim()}'.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
-
-    if (widget.isRegistration) {
-      final newPin = _newPinController.text.trim();
-      if (newPin.length < 4) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PIN must be 4 digits')));
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-    }
 
     try {
       final response = await ApiClient.post(
         Uri.parse('${ApiConstants.baseUrl}/user/update-profile'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'name': name, 'email': email}),
+        body: jsonEncode({
+          'phone': phone,
+          'name': name,
+          'firstName': firstName,
+          'email': email,
+          'isRegistration': widget.isRegistration,
+        }),
       );
-
-      if (widget.isRegistration && response.statusCode == 200) {
-        // Also set the PIN for the new user
-        await ApiClient.post(
-          Uri.parse('${ApiConstants.baseUrl}/auth/set-pin'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(
-              {'phone': phone, 'pin': _newPinController.text.trim()}),
-        );
-      }
 
       if (response.statusCode == 200) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile updated successfully!')));
         if (widget.isRegistration) {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const CustomerMainScreen()));
+          Navigator.pop(context, true);
         } else {
           Navigator.pop(
               context, true); // Return true to indicate profile was updated
@@ -259,11 +249,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       child: CircleAvatar(
                         backgroundColor: AppTheme.surfaceContainerHighest,
-                        backgroundImage: _profilePictureUrl != null && _profilePictureUrl!.isNotEmpty
-                            ? MemoryImage(base64Decode(_profilePictureUrl!.split(',').last))
+                        backgroundImage: _profilePictureUrl != null &&
+                                _profilePictureUrl!.isNotEmpty
+                            ? MemoryImage(base64Decode(
+                                _profilePictureUrl!.split(',').last))
                             : null,
-                        child: _profilePictureUrl == null || _profilePictureUrl!.isEmpty
-                            ? const Icon(Icons.person, size: 50, color: AppTheme.primary)
+                        child: _profilePictureUrl == null ||
+                                _profilePictureUrl!.isEmpty
+                            ? const Icon(Icons.person,
+                                size: 50, color: AppTheme.primary)
                             : null,
                       ),
                     ),
@@ -301,14 +295,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         color: AppTheme.surfaceContainerHighest, height: 1),
                     _buildTextField('Phone Number', _phoneController,
                         isReadOnly: true),
-                    if (widget.isRegistration) ...[
-                      const Divider(
-                          color: AppTheme.surfaceContainerHighest, height: 1),
-                      _buildTextField('Create 4-Digit PIN', _newPinController,
-                          isObscure: true,
-                          keyboardType: TextInputType.number,
-                          maxLength: 4),
-                    ],
                   ],
                 ),
               ),
@@ -326,7 +312,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: _isLoading
                       ? const CircularProgressIndicator(
                           color: AppTheme.onPrimaryContainer)
-                      : const Text('SAVE PROFILE CHANGES',
+                      : Text(
+                          widget.isRegistration
+                              ? 'CONTINUE TO PIN SETUP'
+                              : 'SAVE PROFILE CHANGES',
                           style: TextStyle(
                               color: AppTheme.onPrimaryContainer,
                               fontWeight: FontWeight.bold,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
+import 'dart:async';
 import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
@@ -9,17 +8,15 @@ import '../widgets/primary_button.dart';
 import '../core/api_constants.dart';
 import '../core/user_session.dart';
 import 'customer_main_screen.dart';
-import 'driver_dashboard_screen.dart';
 import 'driver_live_photo_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'edit_profile_screen.dart';
 import 'onboarding_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'terms_of_service_screen.dart';
 import 'privacy_policy_screen.dart';
 import '../widgets/parigo_logo.dart';
 import 'package:parigo_ev_app/core/api_client.dart';
-
+import '../services/push_notification_service.dart';
 
 enum LoginState { phone, pin, otp, setPin }
 
@@ -36,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _pinController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _setPinController = TextEditingController();
+  final TextEditingController _confirmPinController = TextEditingController();
 
   LoginState _loginState = LoginState.phone;
   bool _isLoading = false;
@@ -43,6 +41,12 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _uid;
   String? _verificationId;
   bool _termsAccepted = false;
+  bool _isVerifyingOtp = false;
+  static const int _maxOtpResends = 3;
+  static const int _resendDelaySeconds = 30;
+  int _resendAttempts = 0;
+  int _secondsUntilResend = 0;
+  Timer? _resendTimer;
 
   @override
   void dispose() {
@@ -50,21 +54,51 @@ class _LoginScreenState extends State<LoginScreen> {
     _pinController.dispose();
     _otpController.dispose();
     _setPinController.dispose();
+    _confirmPinController.dispose();
+    _resendTimer?.cancel();
     super.dispose();
   }
 
+  void _resetOtpResendState() {
+    _resendTimer?.cancel();
+    _resendAttempts = 0;
+    _secondsUntilResend = 0;
+  }
+
+  void _startOtpResendTimer() {
+    _resendTimer?.cancel();
+    if (!mounted) return;
+    setState(() => _secondsUntilResend = _resendDelaySeconds);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_secondsUntilResend <= 1) {
+        timer.cancel();
+        setState(() => _secondsUntilResend = 0);
+      } else {
+        setState(() => _secondsUntilResend--);
+      }
+    });
+  }
+
   void _handleNetworkError(dynamic e) {
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
-    
+
     final errorStr = e.toString();
-    if (errorStr.contains('SocketException') || errorStr.contains('Failed host lookup') || errorStr.contains('ClientException')) {
+    if (errorStr.contains('SocketException') ||
+        errorStr.contains('Failed host lookup') ||
+        errorStr.contains('ClientException')) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Connection Failed'),
-          content: const Text('Oops! We couldn\'t connect to the server. Please check your internet connection, disable any active VPNs, and try again.'),
+          content: const Text(
+              'Oops! We couldn\'t connect to the server. Please check your internet connection, disable any active VPNs, and try again.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -82,16 +116,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _checkUser() async {
     final phone = _phoneController.text.trim();
-    if (phone.isEmpty) return;
-    
-    if (!_termsAccepted) {
+    if (!RegExp(r'^\d{10}$').hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please accept the Terms of Service to continue'))
+        const SnackBar(content: Text('Enter a valid 10-digit mobile number')),
       );
       return;
     }
 
+    if (!_termsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Please accept the Terms of Service to continue')));
+      return;
+    }
+
     _formattedPhone = '+91$phone';
+    _resetOtpResendState();
 
     setState(() {
       _isLoading = true;
@@ -102,6 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Uri.parse('${ApiConstants.baseUrl}/auth/check-user'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': _formattedPhone, 'role': widget.role}),
+        handleUnauthorized: false,
       );
 
       if (response.statusCode == 200) {
@@ -144,6 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Uri.parse('${ApiConstants.baseUrl}/auth/verify-pin'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': _formattedPhone, 'pin': pin}),
+        handleUnauthorized: false,
       );
 
       if (response.statusCode == 200) {
@@ -158,6 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
               uid: _uid!,
               role: data['role'] ?? widget.role);
           await UserSession().saveSession();
+          PushNotificationService().syncTokenForCurrentUser();
           if (!mounted) return;
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text('Login Successful!')));
@@ -173,56 +215,109 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Incorrect PIN')));
+        _pinController.clear();
+        final data = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['error'] ?? 'Incorrect PIN')),
+        );
       }
     } catch (e) {
       _handleNetworkError(e);
     }
   }
 
-  void _sendOTP() async {
+  void _sendOTP({bool isResend = false}) async {
+    if (_isVerifyingOtp) return;
     setState(() {
       _isLoading = true;
+      _isVerifyingOtp = true;
     });
 
     // Fixes the "missing initial state" error by bypassing the browser reCAPTCHA
     // await FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: _formattedPhone,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto-resolution (often works on Android without entering code)
-        try {
-          final userCredential =
-              await FirebaseAuth.instance.signInWithCredential(credential);
-          final idToken = await userCredential.user!.getIdToken();
-          _verifyTokenWithBackend(idToken!);
-        } catch (e) {
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: _formattedPhone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-resolution (often works on Android without entering code)
+          try {
+            final userCredential =
+                await FirebaseAuth.instance.signInWithCredential(credential);
+            final idToken = await userCredential.user!.getIdToken();
+            await _verifyTokenWithBackend(idToken!);
+          } catch (e) {
+            if (!mounted) return;
+            setState(() {
+              _isLoading = false;
+              _isVerifyingOtp = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Auto-verification failed: $e')));
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+            _isVerifyingOtp = false;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Auto-verification failed: $e')));
-        }
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Verification Failed: ${e.message}')));
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        setState(() {
-          _isLoading = false;
+              SnackBar(content: Text('Verification Failed: ${e.message}')));
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+            _isVerifyingOtp = false;
+            _verificationId = verificationId;
+            _loginState = LoginState.otp;
+            if (isResend) {
+              _resendAttempts++;
+            }
+          });
+          _startOtpResendTimer();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(isResend
+                  ? 'A new OTP has been sent.'
+                  : 'OTP sent to your phone!'),
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
-          _loginState = LoginState.otp;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('OTP sent to your phone!')));
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        _verificationId = verificationId;
-      },
-    );
+        },
+      );
+    } on FirebaseAuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isVerifyingOtp = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not send OTP: ${error.message}')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isVerifyingOtp = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not send OTP: $error')),
+      );
+    }
+  }
+
+  void _resendOTP() {
+    if (_isVerifyingOtp ||
+        _secondsUntilResend > 0 ||
+        _resendAttempts >= _maxOtpResends) {
+      return;
+    }
+    _otpController.clear();
+    _sendOTP(isResend: true);
   }
 
   void _verifyOTP() async {
@@ -243,12 +338,13 @@ class _LoginScreenState extends State<LoginScreen> {
           await FirebaseAuth.instance.signInWithCredential(credential);
       final idToken = await userCredential.user!.getIdToken();
       await _verifyTokenWithBackend(idToken!);
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Invalid OTP: ${e.message}')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Incorrect or expired OTP. Please try again.')));
     } catch (e) {
       _handleNetworkError(e);
     }
@@ -264,24 +360,22 @@ class _LoginScreenState extends State<LoginScreen> {
           'mockPhone': _formattedPhone,
           'role': widget.role
         }),
+        handleUnauthorized: false,
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _uid = data['uid'];
-        UserSession().setUserDetails(
-            phone: _formattedPhone,
-            uid: _uid!,
-            role: data['role'] ?? widget.role);
-        await UserSession().saveSession();
-
+        _resendTimer?.cancel();
+        if (!mounted) return;
         setState(() {
           _isLoading = false;
+          _isVerifyingOtp = false;
+          _secondsUntilResend = 0;
         });
 
         if (data['isNewUser'] == true) {
-          // New user -> Registration Flow
-          Navigator.pushReplacement(
+          final registrationCompleted = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => EditProfileScreen(
@@ -290,12 +384,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           );
-        } else {
-          // Existing user, prompt for PIN creation if they don't have one
-          setState(() {
-            _loginState = LoginState.setPin;
-          });
+          if (!mounted) return;
+          if (registrationCompleted != true) {
+            return;
+          }
         }
+
+        setState(() {
+          _loginState = LoginState.setPin;
+        });
       } else if (response.statusCode == 403) {
         final data = jsonDecode(response.body);
         throw Exception(data['error'] ?? 'Unauthorized access.');
@@ -303,15 +400,22 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Failed to verify OTP with backend');
       }
     } catch (e) {
+      _isVerifyingOtp = false;
       _handleNetworkError(e);
     }
   }
 
   Future<void> _setPIN() async {
     final pin = _setPinController.text.trim();
-    if (pin.isEmpty || pin.length < 4) {
+    final confirmation = _confirmPinController.text.trim();
+    if (!RegExp(r'^\d{4}$').hasMatch(pin)) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a 4-digit PIN')));
+          const SnackBar(content: Text('PIN must contain exactly 4 digits')));
+      return;
+    }
+    if (pin != confirmation) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('PINs do not match. Please try again.')));
       return;
     }
 
@@ -324,14 +428,31 @@ class _LoginScreenState extends State<LoginScreen> {
         Uri.parse('${ApiConstants.baseUrl}/auth/set-pin'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': _formattedPhone, 'pin': pin}),
+        handleUnauthorized: false,
       );
 
       if (response.statusCode == 200) {
         if (!mounted) return;
 
-        // Also need to sign them into Firebase with custom token since they just registered!
-        // Wait, for new users, we can just call verify-pin automatically to login.
-        _verifyPIN(autoPin: pin);
+        // OTP authentication is only for PIN creation. Require the normal
+        // number-and-PIN login afterwards, so this flow is explicit and safe.
+        await FirebaseAuth.instance.signOut();
+        await UserSession().clear();
+        _phoneController.clear();
+        _pinController.clear();
+        _setPinController.clear();
+        _confirmPinController.clear();
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+          _loginState = LoginState.phone;
+          _termsAccepted = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'PIN created. Please sign in with your number and PIN.')),
+        );
       } else {
         throw Exception('Failed to set PIN');
       }
@@ -447,7 +568,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               Expanded(
                                 child: Text(
                                   'I agree to the Terms of Service and Privacy Policy',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.onSurfaceVariant),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                          color: AppTheme.onSurfaceVariant),
                                 ),
                               ),
                             ],
@@ -464,15 +589,44 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: Icons.arrow_forward,
                             onPressed: _getButtonAction(),
                           ),
-
+                        if (_loginState == LoginState.otp) ...[
+                          const SizedBox(height: 12),
+                          Center(
+                            child: TextButton(
+                              onPressed: _secondsUntilResend == 0 &&
+                                      _resendAttempts < _maxOtpResends &&
+                                      !_isVerifyingOtp
+                                  ? _resendOTP
+                                  : null,
+                              child: Text(
+                                _resendAttempts >= _maxOtpResends
+                                    ? 'Resend limit reached'
+                                    : _secondsUntilResend > 0
+                                        ? 'Resend OTP in ${_secondsUntilResend}s'
+                                        : 'Resend OTP',
+                                style: TextStyle(
+                                  color: _secondsUntilResend == 0 &&
+                                          _resendAttempts < _maxOtpResends
+                                      ? AppTheme.primaryContainer
+                                      : AppTheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${_maxOtpResends - _resendAttempts} resend attempts remaining',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: AppTheme.onSurfaceVariant),
+                          ),
+                        ],
                         if (_loginState == LoginState.pin) ...[
                           const SizedBox(height: 16),
                           Center(
                             child: TextButton(
-                              onPressed: () {
-                                // Forgot PIN: Reset to OTP flow
-                                _sendOTP();
-                              },
+                              onPressed: _startForgotPinFlow,
                               child: const Text('Forgot PIN? Login with OTP',
                                   style: TextStyle(
                                       color: AppTheme.primaryContainer)),
@@ -490,7 +644,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const TermsOfServiceScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const TermsOfServiceScreen()),
                             );
                           },
                           child: const Text('Terms of Service',
@@ -501,7 +657,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PrivacyPolicyScreen()),
                             );
                           },
                           child: const Text('Privacy Policy',
@@ -579,6 +737,29 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _startForgotPinFlow() {
+    // The phone number was just verified by the preceding number step, so
+    // reset its PIN directly rather than asking the user to enter it again.
+    if (_formattedPhone.isEmpty) {
+      setState(() => _loginState = LoginState.phone);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter your mobile number first.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _resetOtpResendState();
+      _isVerifyingOtp = false;
+      _verificationId = null;
+      _pinController.clear();
+      _otpController.clear();
+      _setPinController.clear();
+      _confirmPinController.clear();
+    });
+    _sendOTP();
+  }
+
   Widget _buildHeader() {
     String title;
     String subtitle;
@@ -604,7 +785,7 @@ class _LoginScreenState extends State<LoginScreen> {
         break;
       case LoginState.setPin:
         title = 'Set Secure PIN';
-        subtitle = 'Create a 4-digit PIN for future logins.';
+        subtitle = 'Create and confirm a 4-digit PIN for future logins.';
         break;
     }
 
@@ -707,6 +888,45 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
+        if (_loginState == LoginState.setPin) ...[
+          const SizedBox(height: 16),
+          Text('CONFIRM 4-DIGIT PIN',
+              style: Theme.of(context)
+                  .textTheme
+                  .labelLarge
+                  ?.copyWith(color: AppTheme.secondary, letterSpacing: 2)),
+          const SizedBox(height: 8),
+          Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceContainerHigh.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(9999),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _confirmPinController,
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                    maxLength: 4,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                      counterText: '',
+                    ),
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child:
+                      Icon(Icons.lock_reset, color: AppTheme.primaryContainer),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -720,7 +940,7 @@ class _LoginScreenState extends State<LoginScreen> {
       case LoginState.otp:
         return 'Verify';
       case LoginState.setPin:
-        return 'Save PIN & Login';
+        return 'Create PIN';
     }
   }
 

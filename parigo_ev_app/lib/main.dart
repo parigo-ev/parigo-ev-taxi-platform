@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'theme/app_theme.dart';
@@ -20,6 +21,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'core/language_provider.dart';
 import 'services/admin_background_service.dart';
+import 'services/push_notification_service.dart';
 import 'widgets/connectivity_wrapper.dart';
 
 void _reportCrashToAdmin(dynamic error, StackTrace? stack) {
@@ -27,12 +29,13 @@ void _reportCrashToAdmin(dynamic error, StackTrace? stack) {
     final session = UserSession();
     final role = session.role.isNotEmpty ? session.role : 'Unknown';
     final phone = session.phone.isNotEmpty ? session.phone : 'Unknown';
-    
+
     // Send a fire-and-forget request to the backend
     final url = Uri.parse('${ApiConstants.baseUrl}/admin/report-crash');
-    
+
     ApiClient.post(
       url,
+      handleUnauthorized: false,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'role': role,
@@ -40,7 +43,9 @@ void _reportCrashToAdmin(dynamic error, StackTrace? stack) {
         'errorMessage': error.toString(),
         'stackTrace': stack?.toString(),
       }),
-    ).timeout(const Duration(seconds: 2)).catchError((_) => http.Response('Error', 500));
+    )
+        .timeout(const Duration(seconds: 2))
+        .catchError((_) => http.Response('Error', 500));
   } catch (e) {
     // Ignore internal reporting errors
   }
@@ -48,9 +53,11 @@ void _reportCrashToAdmin(dynamic error, StackTrace? stack) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   if (!kIsWeb) {
     await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await PushNotificationService().initialize();
 
     // Initialize Deep Link Handler
     DeepLinkHandler().initAppLinks();

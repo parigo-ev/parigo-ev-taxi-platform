@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const db = require('../../db');
+const { notifyUser } = require('../services/pushNotificationService');
 const axios = require('axios');
 
 const createRide = async (req, res) => {
@@ -627,10 +628,12 @@ const payRide = async (req, res) => {
         otherPartyName: driverName
       });
 
-      await db.query(
-        'INSERT INTO notifications (uid, title, message, type, metadata) VALUES ($1, $2, $3, $4, $5)',
-        [uid, 'Ride Completed', `Your trip was successfully completed. Please rate your experience with ${driverName}.`, 'ride_complete', metadata]
-      );
+      await notifyUser(uid, {
+        title: 'Ride Completed',
+        message: `Your trip was successfully completed. Please rate your experience with ${driverName}.`,
+        type: 'ride_complete',
+        metadata,
+      });
     } catch (err) {
       console.error('Error inserting ride complete notification:', err);
     }

@@ -1,4 +1,5 @@
 const db = require('../../db');
+const { notifyUser } = require('../services/pushNotificationService');
 
 const getNotifications = async (req, res) => {
   const { phone } = req.params;
@@ -52,10 +53,7 @@ const testNotification = async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     
     const uid = result.rows[0].uid;
-    await db.query(
-      'INSERT INTO notifications (uid, title, message, type) VALUES ($1, $2, $3, $4)',
-      [uid, title, message, type || 'general']
-    );
+    await notifyUser(uid, { title, message, type: type || 'general' });
     res.status(200).json({ success: true, message: 'Test notification sent' });
   } catch (error) {
     console.error('Error sending test notification:', error);
@@ -63,9 +61,45 @@ const testNotification = async (req, res) => {
   }
 };
 
+const registerDeviceToken = async (req, res) => {
+  const { token, platform } = req.body;
+  if (!token || !platform || !['android', 'ios'].includes(platform)) {
+    return res.status(400).json({ error: 'A valid device token and platform are required' });
+  }
+
+  try {
+    await db.query(
+      `INSERT INTO device_tokens (uid, token, platform, updated_at)
+       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+       ON CONFLICT (token)
+       DO UPDATE SET uid = EXCLUDED.uid, platform = EXCLUDED.platform, updated_at = CURRENT_TIMESTAMP`,
+      [req.user.uid, token, platform]
+    );
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error registering device token:', error);
+    res.status(500).json({ error: 'Failed to register device token' });
+  }
+};
+
+const unregisterDeviceToken = async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Device token required' });
+
+  try {
+    await db.query('DELETE FROM device_tokens WHERE uid = $1 AND token = $2', [req.user.uid, token]);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error unregistering device token:', error);
+    res.status(500).json({ error: 'Failed to unregister device token' });
+  }
+};
+
 module.exports = {
   getNotifications,
   markAsRead,
   getUnreadCount,
-  testNotification
+  testNotification,
+  registerDeviceToken,
+  unregisterDeviceToken
 };
