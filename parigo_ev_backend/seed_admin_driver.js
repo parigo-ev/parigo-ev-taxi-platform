@@ -5,6 +5,10 @@ async function seedDatabase() {
   try {
     console.log('Connecting to database...');
 
+    // db.js creates the base schema asynchronously. Railway starts with an
+    // empty database, so seeding must not race the users/drivers table setup.
+    await db.ready;
+
     // ==========================================
     // 1. HARDCODE YOUR ADMIN DETAILS HERE
     // ==========================================

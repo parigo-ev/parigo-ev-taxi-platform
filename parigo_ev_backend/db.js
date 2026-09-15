@@ -190,10 +190,12 @@ const initDb = async () => {
   }
 };
 
-// Initialize DB on startup
-initDb();
+// Initialize DB on startup and expose the promise so startup/seed scripts can
+// wait for the schema before issuing queries against a brand-new database.
+const ready = initDb();
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
   pool,
+  ready,
 };
