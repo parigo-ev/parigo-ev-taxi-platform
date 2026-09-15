@@ -3,10 +3,18 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { notifyUser } = require('../services/pushNotificationService');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Payment credentials may intentionally be absent in a fresh environment.
+// Do not prevent the entire API from starting; payment endpoints return a
+// clear service-unavailable response until Railway is configured.
+const hasRazorpayCredentials = Boolean(
+  process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
+);
+const razorpay = hasRazorpayCredentials
+  ? new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    })
+  : null;
 
 function normalizePhone(phone) {
   if (!phone) return phone;
@@ -103,6 +111,9 @@ const addFunds = async (req, res) => {
 const createRazorpayOrder = async (req, res) => {
   const { amount } = req.body;
   if (!amount) return res.status(400).json({ error: 'Amount required' });
+  if (!razorpay) {
+    return res.status(503).json({ error: 'Razorpay is not configured' });
+  }
 
   try {
     const options = {
@@ -126,6 +137,9 @@ const verifyPayment = async (req, res) => {
   
   if (!phone || !amount || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     return res.status(400).json({ error: 'Missing payment verification details' });
+  }
+  if (!hasRazorpayCredentials) {
+    return res.status(503).json({ error: 'Razorpay is not configured' });
   }
 
   try {
@@ -176,6 +190,10 @@ const verifyPayment = async (req, res) => {
 const razorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_KEY_SECRET;
   const signature = req.headers['x-razorpay-signature'];
+
+  if (!secret) {
+    return res.status(503).send('Razorpay is not configured');
+  }
   
   if (!signature) {
     return res.status(400).send('No signature');
